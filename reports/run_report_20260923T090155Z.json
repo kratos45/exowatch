@@ -1,0 +1,13 @@
+{
+  "pipeline": "exowatch",
+  "executed_at": "2026-09-23T09:01:55.939137+00:00",
+  "source_file": "source_20260923T080933Z.csv",
+  "input_rows": 6366,
+  "accepted_rows": 6363,
+  "rejected_rows": 3,
+  "curated_total_rows": 6363,
+  "atypical_candidates_heuristic": 11,
+  "atypical_candidates_ml": 550,
+  "quality_status": "PASS_WITH_WARNINGS",
+  "duration_seconds": 3.36
+}
