@@ -206,10 +206,26 @@ def save_neos_db(conn, rows, observed_at):
     cursor = conn.cursor()
     for row in rows:
         orb_data = row.get("orbital_data", {})
+        
+        # Extractions avancées
+        est_diam = row.get("estimated_diameter", {}).get("meters", {})
+        d_min = est_diam.get("estimated_diameter_min")
+        d_max = est_diam.get("estimated_diameter_max")
+        
+        ca_data = row.get("close_approach_data", [])
+        ca_date = None
+        rel_vel = None
+        miss_dist = None
+        if ca_data:
+            ca = ca_data[0]
+            ca_date = ca.get("close_approach_date")
+            rel_vel = ca.get("relative_velocity", {}).get("kilometers_per_hour")
+            miss_dist = ca.get("miss_distance", {}).get("lunar")
+            
         cursor.execute("""
             INSERT OR REPLACE INTO neo_objects
-            (entity_id, observed_at, name, semi_major_axis, eccentricity, orbital_period, perihelion_distance, aphelion_distance, is_potentially_hazardous_asteroid)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (entity_id, observed_at, name, semi_major_axis, eccentricity, orbital_period, perihelion_distance, aphelion_distance, is_potentially_hazardous_asteroid, absolute_magnitude_h, estimated_diameter_min, estimated_diameter_max, close_approach_date, relative_velocity_kmh, miss_distance_lunar)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             row.get("id"), observed_at, row.get("name"),
             orb_data.get("semi_major_axis"),
@@ -217,21 +233,43 @@ def save_neos_db(conn, rows, observed_at):
             orb_data.get("orbital_period"),
             orb_data.get("perihelion_distance"),
             orb_data.get("aphelion_distance"),
-            1 if row.get("is_potentially_hazardous_asteroid") else 0
+            1 if row.get("is_potentially_hazardous_asteroid") else 0,
+            row.get("absolute_magnitude_h"),
+            d_min, d_max, ca_date, rel_vel, miss_dist
         ))
     conn.commit()
+    
+def load_and_save_sentry(conn):
+    sentry_files = sorted(Path("data/raw").glob("sentry_source_*.json"))
+    if not sentry_files: return 0
+    with open(sentry_files[-1], "r", encoding="utf-8") as f:
+        data = json.load(f)
+    
+    objects = data.get("data", [])
+    cursor = conn.cursor()
+    for obj in objects:
+        cursor.execute("""
+            INSERT OR REPLACE INTO sentry_impact_risks
+            (des, fullname, ip, v_inf, diameter, impact_range, last_obs)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            obj.get("des"), obj.get("fullname"), obj.get("ip"), obj.get("v_inf"), obj.get("diameter"), obj.get("range"), obj.get("last_obs")
+        ))
+    conn.commit()
+    return len(objects)
 
 
 if __name__ == "__main__":
     start = time.perf_counter()
-    conn = db.get_connection()
     db.init_db() # Ensure tables exist
+    conn = db.get_connection()
     
     report = {
         "pipeline": "exowatch",
         "executed_at": datetime.now(timezone.utc).isoformat(),
         "exoplanets": {"input": 0, "accepted": 0, "rejected": 0},
         "neos": {"input": 0, "accepted": 0, "rejected": 0},
+        "sentry": {"inserted": 0}
     }
 
     # --- EXOPLANETS ---
@@ -268,6 +306,10 @@ if __name__ == "__main__":
         write_rejected(flat_neo_rej, REJECTED_DIR / "rejected_neos.csv")
         report["neos"]["accepted"] = len(neo_acc)
         report["neos"]["rejected"] = len(neo_rej)
+        
+    # --- SENTRY ---
+    sentry_count = load_and_save_sentry(conn)
+    report["sentry"]["inserted"] = sentry_count
 
     conn.close()
 
@@ -281,3 +323,4 @@ if __name__ == "__main__":
     print(f"Rapport écrit : {report_path}")
     print(f"Exoplanètes : {report['exoplanets']['accepted']} insérées, {report['exoplanets']['rejected']} rejetées.")
     print(f"NEOs : {report['neos']['accepted']} insérés, {report['neos']['rejected']} rejetés.")
+    print(f"Sentry : {report['sentry']['inserted']} objets insérés.")

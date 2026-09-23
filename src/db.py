@@ -13,7 +13,11 @@ def init_db():
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Table pour les exoplanètes
+    # On supprime les anciennes tables pour la mise à jour du schéma
+    cursor.execute("DROP TABLE IF EXISTS neo_objects")
+    cursor.execute("DROP TABLE IF EXISTS sentry_impact_risks")
+    
+    # Table pour les exoplanètes (inchangée)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS exoplanets (
             entity_id TEXT PRIMARY KEY,
@@ -31,7 +35,7 @@ def init_db():
         )
     """)
     
-    # Table pour les objets géocroiseurs (NEOs)
+    # Table pour les objets géocroiseurs (NEOs) - Enrichie
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS neo_objects (
             entity_id TEXT PRIMARY KEY,
@@ -42,7 +46,26 @@ def init_db():
             orbital_period REAL,
             perihelion_distance REAL,
             aphelion_distance REAL,
-            is_potentially_hazardous_asteroid INTEGER
+            is_potentially_hazardous_asteroid INTEGER,
+            absolute_magnitude_h REAL,
+            estimated_diameter_min REAL,
+            estimated_diameter_max REAL,
+            close_approach_date TEXT,
+            relative_velocity_kmh REAL,
+            miss_distance_lunar REAL
+        )
+    """)
+    
+    # Nouvelle table Sentry
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sentry_impact_risks (
+            des TEXT PRIMARY KEY,
+            fullname TEXT,
+            ip REAL,
+            v_inf REAL,
+            diameter REAL,
+            impact_range TEXT,
+            last_obs TEXT
         )
     """)
     
@@ -51,4 +74,4 @@ def init_db():
 
 if __name__ == "__main__":
     init_db()
-    print(f"Base de données initialisée : {DB_FILE}")
+    print(f"Base de données réinitialisée : {DB_FILE}")

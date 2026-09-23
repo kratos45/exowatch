@@ -164,9 +164,43 @@ with col1:
         "anomaly_score_heuristic", "anomaly_score_ml",
     ] if data_source == "exoplanets" else [
         "entity_id", "name", "semi_major_axis", "eccentricity", "orbital_period",
-        "perihelion_distance", "aphelion_distance", "is_potentially_hazardous_asteroid"
+        "perihelion_distance", "aphelion_distance", "is_potentially_hazardous_asteroid",
+        "estimated_diameter_min", "estimated_diameter_max", "close_approach_date",
+        "relative_velocity_kmh", "miss_distance_lunar"
     ]
-    st.json({k: selected_row[k] for k in keys_to_show if k in selected_row})
+    
+    st.write("**Carte de Profil (Caractéristiques)**")
+    
+    if data_source == "exoplanets":
+        c1, c2 = st.columns(2)
+        c1.metric("Rayon (R⊕)", selected_row.get('pl_rade', 'N/A'))
+        c2.metric("Masse (M⊕)", selected_row.get('pl_bmasse', 'N/A'))
+        
+        c3, c4 = st.columns(2)
+        c3.metric("Période Orbitale", f"{selected_row.get('pl_orbper', 'N/A')} j")
+        c4.metric("Température (Étoile)", f"{selected_row.get('st_teff', 'N/A')} K")
+        
+        st.info(f"**Découverte :** {selected_row.get('disc_year')} par {selected_row.get('discoverymethod')}\n\n**Étoile hôte :** {selected_row.get('hostname')}\n\n**Distance :** {selected_row.get('sy_dist')} pc")
+    else:
+        # NEOs Profile Card
+        c1, c2 = st.columns(2)
+        pha = "Oui ⚠️" if selected_row.get("is_potentially_hazardous_asteroid") else "Non ✅"
+        c1.metric("Dangerosité (PHA)", pha)
+        
+        d_min = selected_row.get('estimated_diameter_min')
+        d_max = selected_row.get('estimated_diameter_max')
+        diam_text = f"{d_min:.0f} - {d_max:.0f} m" if d_min and d_max else "N/A"
+        c2.metric("Taille estimée", diam_text)
+        
+        c3, c4 = st.columns(2)
+        vel = selected_row.get('relative_velocity_kmh')
+        c3.metric("Vitesse (km/h)", f"{float(vel):,.0f}" if vel else "N/A")
+        
+        miss = selected_row.get('miss_distance_lunar')
+        c4.metric("Distance frôlement", f"{float(miss):.1f} dist. lunaire" if miss else "N/A")
+        
+        ca_date = selected_row.get('close_approach_date')
+        st.info(f"**Prochain passage proche :** {ca_date if ca_date else 'Inconnu'}\n\n**Demi-grand axe :** {selected_row.get('semi_major_axis')} UA\n\n**Excentricité :** {selected_row.get('eccentricity')}")
 
 with col2:
     if st.button("🤖 Expliquer avec l'IA"):
@@ -266,3 +300,16 @@ else:
 st.divider()
 st.subheader("Données (Tableau)")
 st.dataframe(filtered)
+
+# ---------- Nouveau Dataset Sentry ----------
+if data_source == "neo_objects":
+    st.divider()
+    st.subheader("⚠️ Alertes NASA JPL Sentry (Risques d'Impacts)")
+    st.write("Ce tableau est issu d'un dataset additionnel (Sentry) répertoriant les astéroïdes ayant une probabilité non nulle de percuter la Terre.")
+    sentry_rows = load_data("sentry_impact_risks")
+    if sentry_rows:
+        # Trier par probabilité d'impact (ip) décroissante
+        sentry_rows = sorted(sentry_rows, key=lambda x: float(x['ip'] if x['ip'] else 0), reverse=True)
+        st.dataframe(sentry_rows[:50]) # Afficher les 50 plus dangereux
+    else:
+        st.info("Aucune donnée Sentry trouvée.")
