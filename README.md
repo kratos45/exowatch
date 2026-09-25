@@ -1,9 +1,103 @@
 # ExoWatch 🪐 & Near-Earth Objects (NEOs) ☄️ - Version 2.5 (Cockpit & Defense Suite)
 
 ## Objectif Final du Projet
-Détecter, explorer et analyser les objets célestes atypiques ou dangereux à l'aide de l'intelligence artificielle, des graphes de connaissances (Knowledge Graphs), de l'astrodynamique keplérienne et de la modélisation 3D en temps réel.
+Détecter, explorer et analyser les objets célestes atypiques ou dangereux à l'aide de l'intelligence artificielle, des graphes de connaissances (Knowledge Graphs), de l'astrodynamique képlérienne et de la modélisation 3D en temps réel.
 
 ExoWatch v2.5 transforme la plateforme en un **véritable cockpit immersif de défense planétaire et de prospection spatiale**, reposant sur une architecture de pointe : **Neo4j Graph Database**, **FastAPI**, **Next.js 16**, **Three.js**, et l'orchestration avancée d'**Agents Autonomes Multi-Étapes**.
+
+---
+
+## 🪐 Architecture Data : Le Graphe de Connaissances (Neo4j)
+
+La base de données relationnelle initiale (SQLite) a été migrée vers **Neo4j**, une base de données orientée graphes industrielle, permettant de modéliser l'univers sous la forme d'un réseau topologique d'interactions complexes :
+- **Nœuds Célestes & Humains** :
+  - `(:NEO)` : Astéroïdes géocroiseurs avec éphémérides (demi-grand axe $a$, excentricité $e$, période orbitale $P$, inclinaison $i$, diamètre, vitesse relative).
+  - `(:Planet)` : La Terre (`Earth`), Mars, Jupiter, etc.
+  - `(:Star)` : Le Soleil (`Sun`) et les étoiles hôtes d'exoplanètes.
+  - `(:Exoplanet)` : Exoplanètes confirmées par la NASA avec métadonnées astrophysiques.
+  - `(:Telescope)` : Télescopes spatiaux et observatoires terrestres (`Kepler`, `TESS`, `Palomar`).
+  - `(:Mission)` : Sondes et missions d'exploration passées et futures (`OSIRIS-REx`, `Hayabusa2`, `DART`).
+  - `(:SpaceStation)` : Hubs logistiques et avant-postes en orbite (`Lunar Gateway`, `ISS`).
+- **Relations Topologiques Riches** :
+  - `(n:NEO)-[:ORBITS]->(s:Star)` : Trajectoires héliocentriques.
+  - `(n:NEO)-[:THREATENS {probability, impact_range, diameter}]->(p:Planet)` : Menaces de collision Sentry.
+  - `(Earth:Planet)-[:REACHABLE_WITH_DELTAV {cost, duration_days}]->(n:NEO)` : Routes de transfert Hohmann et coûts propulsifs.
+  - `(t:Telescope)-[:DISCOVERED]->(e:Exoplanet)` : Découvertes instrumentales.
+  - `(m:Mission)-[:VISITED]->(n:NEO)` : Missions d'échantillonnage de surface.
+
+---
+
+## ⚙️ Pipeline ETL Robuste (Extract, Transform, Load)
+
+Le système repose sur un pipeline de données automatisé et immuable garantissant la traçabilité et la qualité des données astronomiques (`src/collect.py`, `src/transform.py`, `src/validate.py`) :
+
+```mermaid
+graph TD
+    A[NASA Exoplanet Archive] -->|Collecte API| RAW_EXO[data/raw/source_*.csv]
+    B[NASA NeoWs REST API] -->|Collecte API| RAW_NEO[data/raw/neo_source_*.json]
+    C[NASA JPL Sentry API] -->|Collecte API| RAW_SEN[data/raw/sentry_source_*.json]
+    
+    RAW_EXO --> VAL[Validation & Filtrage Qualité]
+    RAW_NEO --> VAL
+    RAW_SEN --> VAL
+    
+    VAL -->|Données Aberrantes| REJ[data/rejected/]
+    VAL -->|Données Conformes| ML[ML: Isolation Forest & Score MAD]
+    
+    ML --> AUG[Enrichissement par LLM OpenRouter]
+    AUG --> LOAD[Chargement Cypher Optimisé MERGE]
+    LOAD --> NEO4J[(Neo4j Graph Database)]
+```
+
+### 1. Extract (Collecte Immuable)
+- **NASA Exoplanet Archive** : Téléchargement des tables d'exoplanètes confirmées (`pl_name`, `hostname`, `pl_rade`, `pl_bmasse`, `pl_orbper`, `sy_dist`).
+- **NASA NeoWs (Near Earth Object Web Service)** : Données orbitales képlériennes complètes des géocroiseurs, diamètres estimés min/max, approches proches (close approach dates).
+- **JPL Sentry System** : Objets présentant un risque d'impact terrestre non nul avec probabilités d'impact cumulées et échelles de Palerme/Turin.
+- Toutes les données brutes sont archivées avec horodatage UTC dans `data/raw/`.
+
+### 2. Transform (Validation, Détection d'Anomalies & ML)
+- **Validation Stricte (`src/validate.py`)** : Rejet des valeurs physiques négatives ou corrompues (ex: rayon planétaire $\le 0$). Génération automatique de journaux d'audit dans `data/rejected/`.
+- **Score d'Atypicité Heuristique (MAD - Median Absolute Deviation)** :
+  $$Z_i = \frac{|\log_{10}(X_i) - \text{median}(\log_{10}(X))|}{1.4826 \times \text{MAD}}$$
+  Normalisation pour détecter les exoplanètes aux proportions extrêmes (ex: Jupiters ultra-chauds).
+- **Machine Learning (Isolation Forest Autonome)** :
+  Implémentation native d'Isolation Forest en Python sans dépendance scikit-learn lourde, partitionnant l'espace multidimensionnel pour isoler les anomalies astronomiques (`anomaly_score_ml`).
+
+### 3. Load (Insertion Cypher Optimisée)
+- Insertion incrémentale via le pilote Python `neo4j` (`db_neo4j.py`).
+- Utilisation systématique de clauses `MERGE` et de transactions par lots (`UNWIND`) pour garantir l'idempotence du pipeline.
+- Production d'un rapport de run auditable au format JSON (`reports/run_report_neo4j_*.json`).
+
+---
+
+## 🧠 Augmentation des Données par LLM (Data Augmentation)
+
+Les catalogues publics de la NASA fournissent la cinématique orbitale et les magnitudes des astéroïdes, mais ne disposent pas de données minérales complètes ou d'analyses de faisabilité minière pour l'ensemble des 2,400+ objets.
+
+ExoWatch comble ce manque grâce à un **module d'augmentation de données par IA générative** (`src/augment_llm.py`) :
+
+1. **Inférence Minéralogique et Structurale par Lot** :
+   - Le pipeline interroge un modèle de langage avancé (LLM) via OpenRouter en fournissant le diamètre, l'albédo, le demi-grand axe et l'excentricité de chaque géocroiseur.
+   - Le modèle infère les propriétés astrophysiques selon les modèles de taxonomie astéroïdale (Tholen & DeMeo) :
+     - **`material`** : Composition de surface (*Fer-Nickel métallique*, *Silicates*, *Chondrite carbonée*, *Glace et poussières*).
+     - **`porosity`** : Porosité structurelle (flottant entre $0.0$ et $1.0$).
+     - **`exploitable`** : Booléen évaluant la rentabilité d'une mission d'extraction minière.
+     - **`risk_analysis`** : Analyse qualitative du danger cinétique et de la stabilité de trajectoire.
+     - **`exact_diameter_m`** : Diamètre affiné et cohérent.
+
+2. **Injection Structurée dans le Graphe Neo4j** :
+   - Les propriétés déduites par l'IA sont directement enregistrées dans les nœuds `(n:NEO)` :
+     ```cypher
+     MATCH (n:NEO {id: $id})
+     SET n.material = $material,
+         n.porosity = $porosity,
+         n.exploitable = $exploitable,
+         n.risk_analysis = $risk_analysis,
+         n.exact_diameter_m = $exact_diameter_m
+     ```
+
+3. **Fiabilité et Transparence Scientifique** :
+   - Chaque inférence est pondérée par un **Indice de Confiance Scientifique** (de 72% à 97%), calculé dynamiquement en fonction de la complétude photométrique (albédo $p_V$, magnitude absolue $H$, spectre infrarouge NEOWISE).
 
 ---
 
@@ -63,11 +157,16 @@ ExoWatch v2.5 transforme la plateforme en un **véritable cockpit immersif de d�
      4. Calcul de rentabilité économique et frontière de Pareto.
      5. Synthèse exécutive stratégique de niveau Ingénieur Principal NASA JPL.
 
-2. **Copilote de Mission Contextuel (RAG sur l'état de l'UI)** :
+2. **Module Text-to-Cypher (Uplink Conversationnel)** :
+   - Chat global connecté en direct à l'API Neo4j.
+   - Traduction automatique du langage naturel en requêtes Cypher sécurisées.
+   - Synthèse des données tabulaires en réponses formulées en langage clair style NASA.
+
+3. **Copilote de Mission Contextuel (RAG sur l'état de l'UI)** :
    - Assistant de bord actif qui analyse en continu la vue affichée et l'objet sélectionné par l'utilisateur.
    - Diffuse en temps réel des avertissements opérationnels et des insights astrodynamiques proactifs dans le bandeau de commande supérieur.
 
-3. **Génération Automatique de Rapports de Mission NASA** :
+4. **Génération Automatique de Rapports de Mission NASA** :
    - Générateur de dossiers officiels au format Markdown conforme aux standards *"NASA Technical Memorandum (NASA/TM-2026)"*.
    - Synthétise l'astrométrie de la cible, son potentiel ISRU (utilisation des ressources in situ), le plan d'atténuation de menace, et cite formellement les archives JPL Horizons et le Knowledge Graph Neo4j.
    - Export et téléchargement direct en un clic d'un fichier `.md`.
