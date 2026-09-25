@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
 import os
 import json
 from neo4j import GraphDatabase
 from openai import OpenAI
 
-OPENROUTER_API_KEY = "REMOVED_API_KEY"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 client = OpenAI(
     api_key=OPENROUTER_API_KEY,

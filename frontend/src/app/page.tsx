@@ -235,12 +235,12 @@ function MiningView() {
         <div className="flex-1 overflow-auto border border-cyan-100 shadow-[0_0_10px_rgba(0,255,255,0.1)]">
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-100 text-cyan-500 sticky top-0">
-              <tr><th className="p-2">Nom</th><th className="p-2">Matériau</th><th className="p-2">Score</th></tr>
+              <tr><th className="p-2">Nom</th><th className="p-2">Matériau</th><th className="p-2">Δv (Coût)</th><th className="p-2">Score</th></tr>
             </thead>
             <tbody>
               {data.map((row:any, i) => (
                 <tr key={i} onClick={() => setSelected(row)} className={`border-b border-gray-100 cursor-pointer ${selected?.name === row.name ? "bg-cyan-100 text-cyan-600 font-bold drop-shadow-[0_0_5px_rgba(0,255,255,0.3)]" : "hover:bg-gray-100 text-gray-700"}`}>
-                  <td className="p-2">{row.name}</td><td className="p-2">{row.material}</td><td className="p-2 text-green-400">{Math.round(row.score)}</td>
+                  <td className="p-2">{row.name}</td><td className="p-2">{row.material}</td><td className="p-2">{row.delta_v_cost ? row.delta_v_cost.toLocaleString() + ' m/s' : '-'}</td><td className="p-2 text-green-400">{Math.round(row.score)}</td>
                 </tr>
               ))}
             </tbody>
@@ -288,12 +288,12 @@ function ImpactView() {
         <div className="flex-1 overflow-auto border border-cyan-100 shadow-[0_0_10px_rgba(0,255,255,0.1)]">
           <table className="w-full text-left text-xs">
             <thead className="bg-gray-100 text-red-600 sticky top-0">
-              <tr><th className="p-2">Nom</th><th className="p-2">Prob%</th><th className="p-2">Énergie (Mt)</th></tr>
+              <tr><th className="p-2">Nom</th><th className="p-2">Centralité (Menace)</th><th className="p-2">Énergie (Mt)</th></tr>
             </thead>
             <tbody>
               {data.map((row:any, i) => (
                 <tr key={i} onClick={() => setSelected(row)} className={`border-b border-gray-100 cursor-pointer ${selected?.name === row.name ? "bg-red-900/30 text-red-300" : "hover:bg-gray-100 text-gray-700"}`}>
-                  <td className="p-2">{row.name}</td><td className="p-2">{row.prob}%</td><td className="p-2 text-red-600">{row.megatons.toLocaleString()}</td>
+                  <td className="p-2">{row.name}</td><td className="p-2">{row.threat_centrality ? row.threat_centrality.toFixed(2) + ' Pts' : '-'}</td><td className="p-2 text-red-600">{row.megatons.toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>
@@ -334,7 +334,7 @@ function GraphView() {
   useEffect(() => { axios.get(`${API_URL}/graph`).then(res => setData(res.data)); }, []);
   return (
     <div className="border-2 border-cyan-100 shadow-[0_0_15px_rgba(0,255,255,0.15)] rounded-xl bg-white h-full relative">
-      <ForceGraph2D graphData={data} nodeLabel="name" nodeColor={(node:any) => node.label === 'Star' ? '#FFD700' : node.label === 'Exoplanet' ? '#00FFFF' : '#FF4500'} linkColor={(link:any) => link.relation === 'THREATENS' ? '#ff3333' : '#444'} backgroundColor="#000000" linkDirectionalArrowLength={3.5} />
+      <ForceGraph2D graphData={data} nodeLabel="name" nodeColor={(node:any) => node.label === 'Star' ? '#eab308' : node.label === 'Planet' ? '#06b6d4' : node.label === 'Telescope' ? '#8b5cf6' : node.label === 'SpaceStation' ? '#a855f7' : node.label === 'Mission' ? '#ec4899' : node.source_cluster ? (node.source_cluster.includes('Fer') ? '#94a3b8' : node.source_cluster.includes('Silicate') ? '#b45309' : node.source_cluster.includes('Glace') ? '#38bdf8' : '#ef4444') : '#ef4444'} linkColor={(link:any) => link.relation === 'THREATENS' ? '#ef4444' : link.relation === 'REACHABLE_WITH_DELTAV' ? '#22c55e' : '#cbd5e1'} backgroundColor="#ffffff" linkDirectionalArrowLength={3.5} />
     </div>
   );
 }

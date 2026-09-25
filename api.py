@@ -48,9 +48,11 @@ def get_asteroids():
 @app.get("/api/mining")
 def get_mining_opportunities():
     records = run_query("""
-    MATCH (n:NEO)
+    MATCH (Earth:Planet {name: 'Earth'})-[route:REACHABLE_WITH_DELTAV]->(n:NEO)
     WHERE n.material IS NOT NULL
-    RETURN n.name AS name, n.material AS material, COALESCE(n.estimated_diameter_max, n.exact_diameter_m / 1000.0, 0.5) AS diameter, COALESCE(n.relative_velocity_kmh, 50000) AS velocity, n.exploitable AS exploitable
+    RETURN n.name AS name, n.material AS material, COALESCE(n.estimated_diameter_max, n.exact_diameter_m / 1000.0, 0.5) AS diameter, COALESCE(n.relative_velocity_kmh, 50000) AS velocity, n.exploitable AS exploitable, route.cost AS delta_v_cost, route.duration_days AS duration_days
+    ORDER BY route.cost ASC
+    LIMIT 50
     """)
     def get_mat_value(mat):
         mat = str(mat).lower()
@@ -61,7 +63,8 @@ def get_mining_opportunities():
     
     for r in records:
         val = get_mat_value(r['material'])
-        r['score'] = (val * r['diameter']) / (r['velocity'] / 10000 + 1)
+        # New score integrating delta_V cost
+        r['score'] = (val * r['diameter']) / ((r['delta_v_cost'] / 1000) + 1)
     
     records.sort(key=lambda x: x['score'], reverse=True)
     return records[:50]
@@ -70,8 +73,8 @@ def get_mining_opportunities():
 def get_impacts():
     records = run_query("""
     MATCH (n:NEO)-[r:THREATENS]->(p:Planet)
-    RETURN n.name AS name, r.probability AS prob, COALESCE(n.estimated_diameter_max, n.exact_diameter_m / 1000.0, 0.5) AS diameter, COALESCE(n.relative_velocity_kmh, 50000) AS velocity
-    ORDER BY r.probability DESC LIMIT 50
+    RETURN n.name AS name, r.probability AS prob, COALESCE(n.estimated_diameter_max, n.exact_diameter_m / 1000.0, 0.5) AS diameter, COALESCE(n.relative_velocity_kmh, 50000) AS velocity, n.threat_centrality AS threat_centrality
+    ORDER BY n.threat_centrality DESC LIMIT 50
     """)
     for r in records:
         r_meters = (r['diameter'] * 1000) / 2
@@ -80,16 +83,15 @@ def get_impacts():
         v_ms = r['velocity'] * 1000 / 3600 # m/s
         joules = 0.5 * mass * (v_ms**2)
         r['megatons'] = round(joules / 4.184e15, 2)
-    records.sort(key=lambda x: x['megatons'], reverse=True)
     return records
 
 @app.get("/api/graph")
 def get_graph():
     records = run_query("""
     MATCH (n)-[r]->(m)
-    RETURN labels(n)[0] AS source_label, n.name AS source_name, n.id AS source_id,
-           type(r) AS relation, r.probability AS prob,
-           labels(m)[0] AS target_label, m.name AS target_name, m.id AS target_id
+    RETURN labels(n)[0] AS source_label, n.name AS source_name, n.id AS source_id, n.cluster AS source_cluster,
+           type(r) AS relation, r.probability AS prob, r.cost AS cost,
+           labels(m)[0] AS target_label, m.name AS target_name, m.id AS target_id, m.cluster AS target_cluster
     LIMIT 500
     """)
     nodes = []
@@ -126,8 +128,10 @@ class ChatRequest(BaseModel):
 
 @app.post("/api/chat")
 def chat_to_cypher(req: ChatRequest):
+    from dotenv import load_dotenv
+    load_dotenv()
     client = OpenAI(
-        api_key="REMOVED_API_KEY",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
         base_url="https://openrouter.ai/api/v1",
     )
     prompt = f"""

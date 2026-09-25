@@ -68,8 +68,11 @@ if asteroids_records:
             try:
                 from openai import OpenAI
                 # On réutilise la clé d'OpenRouter de augment_llm
+                import os
+                from dotenv import load_dotenv
+                load_dotenv()
                 client = OpenAI(
-                    api_key="REMOVED_API_KEY",
+                    api_key=os.getenv("OPENROUTER_API_KEY"),
                     base_url="https://openrouter.ai/api/v1",
                 )
                 prompt = f"""
@@ -251,8 +254,11 @@ elif view_mode == "🤖 Assistant Text-to-Cypher":
         with st.spinner("Analyse et génération de la requête Cypher..."):
             try:
                 from openai import OpenAI
+                import os
+                from dotenv import load_dotenv
+                load_dotenv()
                 client = OpenAI(
-                    api_key="REMOVED_API_KEY",
+                    api_key=os.getenv("OPENROUTER_API_KEY"),
                     base_url="https://openrouter.ai/api/v1",
                 )
                 
