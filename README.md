@@ -1,82 +1,125 @@
-# ExoWatch 🪐 & Near-Earth Objects (NEOs) ☄️ - Version 2.0 (Production)
+# ExoWatch 🪐 & Near-Earth Objects (NEOs) ☄️ - Version 2.5 (Cockpit & Defense Suite)
 
 ## Objectif Final du Projet
-Détecter, explorer et analyser les objets célestes atypiques ou dangereux à l'aide de l'intelligence artificielle, des graphes de connaissances (Knowledge Graphs) et de la modélisation 3D avancée.
-Cette version 2.0 marque une refonte totale de l'architecture. Fini SQLite et Streamlit : le projet s'appuie désormais sur une stack moderne "Production Ready" avec **Neo4j**, **FastAPI**, **Next.js**, et l'intégration profonde des **LLMs (Large Language Models)** pour l'enrichissement des données et l'interaction en langage naturel.
+Détecter, explorer et analyser les objets célestes atypiques ou dangereux à l'aide de l'intelligence artificielle, des graphes de connaissances (Knowledge Graphs), de l'astrodynamique keplérienne et de la modélisation 3D en temps réel.
 
-## Architecture Data : Le Graphe de Connaissances (Neo4j)
-La base de données relationnelle a été remplacée par **Neo4j**, une base de données orientée graphes, permettant de modéliser l'univers tel qu'il est : un réseau d'interactions complexes.
+ExoWatch v2.5 transforme la plateforme en un **véritable cockpit immersif de défense planétaire et de prospection spatiale**, reposant sur une architecture de pointe : **Neo4j Graph Database**, **FastAPI**, **Next.js 16**, **Three.js**, et l'orchestration avancée d'**Agents Autonomes Multi-Étapes**.
 
-### L'Exploitation Avancée du Graphe (Graph Analytics)
-Nous ne nous limitons pas à stocker des données, nous exploitons la théorie des graphes pour découvrir des informations cachées à l'aide d'algorithmes spatiaux avancés. Le système implémente 4 fonctionnalités majeures (Graph Data Science & Routing) :
+---
 
-1. **Routage Logistique (Shortest Path & Delta-V)** 🛣️
-   Le graphe inclut la planète `Earth` et la future station `Lunar Gateway`. Des relations `[:REACHABLE_WITH_DELTAV]` lient ces hubs spatiaux aux astéroïdes exploitables. Ces relations possèdent des propriétés calculées automatiquement (Cost/Delta-V et Duration). L'algorithme de plus court chemin détermine ainsi la route spatiale la plus rentable pour le minage extraterrestre, directement affiché dans la Vue "Minage".
+## 🌌 Immersion & Cockpit 3D Vivant (Three.js)
 
-2. **Détection de Communautés (Clustering / Louvain)** 🌌
-   Au lieu de classer les objets avec de simples filtres SQL, un algorithme de détection de communautés parcourt le réseau et regroupe automatiquement les objets en "Clusters" selon leurs propriétés géométriques (orbites) et physiques (Fer, Silicate, Glace). Le frontend exploite ce graphe pour coloriser dynamiquement chaque "famille" d'astéroïdes en temps réel dans le Graphe 2D (ex: Gris Métal pour le Fer, Bleu pour la Glace).
+1. **Système Solaire Vivant en 3D Temps Réel** :
+   - Carte navigable 3D en temps réel développée sous **Three.js** avec Soleil rayonnant central, orbites planétaires elliptiques (Mercure, Vénus, Terre avec Lune, Mars, Jupiter).
+   - Plus de 80 objets géocroiseurs (NEOs) orbitant selon les **équations képlériennes réelles** : propagation de l'anomalie moyenne $M$, résolution de l'équation de Kepler pour l'anomalie excentrique $E \approx M + e \sin M$, prise en compte du demi-grand axe $a$, de l'excentricité $e$ et de l'inclinaison $i$.
+   - **Interaction et Raycasting 3D** : Survol télémétrique en direct, sélection au clic avec verrouillage de caméra et déclenchement instantané de la simulation 3D générée (Shap-E).
+   - Commandes de vol : Play / Pause, variateur de vitesse orbitale ($0.2\times$ à $5\times$), masquage dynamique des trajectoires.
 
-3. **Centralité de Menace (PageRank Spatial)** 🕸️
-   Nous avons implémenté une variante de l'algorithme PageRank pour évaluer les menaces en chaîne. Au lieu d'afficher une simple probabilité, chaque nœud possède un *Indice de Centralité de Menace*. Ce score combine la probabilité d'impact avec l'énergie cinétique (masse, diamètre et vélocité) de l'astéroïde. Le "Top 10" des Hubs de Menace révèle les objets les plus dangereux de manière holistique.
+2. **Timeline de Menace Interactive (Horizon J+0 à J+100 ans)** :
+   - Curseur temporel interactif permettant de rejouer l'évolution des trajectoires sur un siècle (2026 ➔ 2126).
+   - **PageRank de Menace Dynamique** : Le score de menace évolue en direct sous l'effet des résonances orbitales et des perturbations gravitationnelles (ex: sursaut de menace lors des fenêtres critiques d'Apophis en 2029 ou de 2023 DW en 2046).
+   - Leaderboard dynamique qui se réordonne en temps réel avec indicateurs d'ondes de rapprochement orbital (Distance en Lunar Distances - LD).
 
-4. **Knowledge Graph Sémantique Historique** 🛰️
-   Le graphe ne s'arrête pas aux astéroïdes : il intègre les Télescopes (ex: `Kepler`, `TESS`) via des relations `[:DISCOVERED]` et les Missions Spatiales (ex: `OSIRIS-REx`, `Hayabusa2`) via `[:VISITED]`. Cette sémantique poussée permet au modèle IA (Text-to-Cypher) de répondre à des requêtes du type : *"Quels sont les astéroïdes composés de silicate découverts par TESS ?"*.
+3. **Simulateur d'Impact Terrestre (Modèle Physique Collins / Purdue)** :
+   - Sélection d'un impacteur ou dimensionnement personnalisé (diamètre de 50m à 2.5km, vitesse de 11 à 45 km/s).
+   - Choix du point d'impact (Paris, New York, Tokyo, Océan Atlantique, Fosse du Pacifique, Sahara).
+   - **Moteur Physique Rigoureux** :
+     - Énergie cinétique libérée en Mégatonnes de TNT ($1\text{ Mt} = 4.184 \times 10^{15}\text{ J}$) et équivalents bombes d'Hiroshima.
+     - Diamètre et profondeur du cratère selon les lois d'échelle de Collins, Melosh & Marcus (2005).
+     - Rayons de surpression de l'onde de choc : zone de vaporisation 20 psi, effondrement structurel 5 psi, bris de verre 1 psi.
+     - Rayon de radiation thermique (brûlures 3e degré), magnitude sismique équivalente sur l'échelle de Richter ($M_w$), et hauteur de tsunami estimée pour les impacts océaniques.
+   - **Visualisation Radar de l'Onde de Choc** : Anneaux concentriques pulsants et flash thermique à l'épicentre.
+   - **Évaluation Tactique IA** : Rapport de crise style ONU/NASA recommandant les évacuations d'urgence et le déploiement de missions de déviation cinétique (DART).
 
-## Pipeline ETL (Extract, Transform, Load)
-Le projet repose sur un pipeline de données complet et robuste pour garantir la qualité des données intégrées à notre base de graphes :
-- **Extract (Collecte)** : Données récupérées via les API de la NASA (*NASA Exoplanet Archive*, *NeoWs*, et *JPL Sentry*) et stockées de manière immuable en local.
-- **Transform (Validation, ML & Augmentation)** :
-  - **Nettoyage** : Filtrage des données aberrantes ou incomplètes.
-  - **Machine Learning (Isolation Forest)** : Calcul de scores d'anomalies multidimensionnels pour détecter les exoplanètes atypiques.
-  - **Augmentation par LLM** : (Voir section suivante) Injection d'inférences IA pour pallier le manque de données physiques.
-- **Load (Chargement Neo4j)** : Les entités et leurs relations (`ORBITS`, `THREATENS`) sont structurées et insérées dans le graphe de connaissances avec des requêtes Cypher optimisées (gestion des `MERGE`).
+---
 
-## LLM au Cœur du Système (Intelligence Artificielle)
+## 🤖 Intelligence Artificielle & Agents Autonomes
 
-L'IA n'est plus un simple gadget d'explication, elle pilote désormais le cœur de la plateforme, de la donnée brute jusqu'à l'interaction utilisateur.
+1. **Agent Autonome Multi-Étapes (Orchestration Qualinova)** :
+   - Capable d'exécuter des instructions composées de haut niveau, par exemple :
+     > *"Trouve-moi les 3 astéroïdes les plus rentables à miner ET compare leur delta-V ET explique pourquoi"*
+   - Pipeline de raisonnement visible étape par étape :
+     1. Décomposition de l'intention et extraction sémantique des entités.
+     2. Génération et exécution de requêtes Cypher composées dans Neo4j.
+     3. Modélisation astrodynamique des transferts orbitaux et des coûts $\Delta v$ (m/s).
+     4. Calcul de rentabilité économique et frontière de Pareto.
+     5. Synthèse exécutive stratégique de niveau Ingénieur Principal NASA JPL.
 
-### 1. Augmentation et Enrichissement des Données (Data Augmentation)
-Les API de la NASA (NeoWs, Sentry) fournissent des données orbitales et physiques basiques, mais souvent incomplètes pour l'exploitation minière ou l'analyse des matériaux.
-Durant l'ETL, nous utilisons un LLM (via `OpenAI/OpenRouter` - variables d'environnement gérées via `.env`) pour **enrichir la base de données Neo4j** :
-- **Prédiction de Matériaux** : L'IA analyse les caractéristiques orbitales, l'albédo et la taille pour prédire la composition probable de l'astéroïde (Roche, Silicate, Fer, Nickel, Glace).
-- **Analyse de Porosité et de Risque** : Le LLM attribue un score de porosité, détermine un niveau de risque textuel, et évalue si l'objet est "Exploitable" d'un point de vue minier.
-- Ces métadonnées générées par l'IA sont injectées de manière structurée dans les nœuds `NEO` de la base Neo4j.
+2. **Copilote de Mission Contextuel (RAG sur l'état de l'UI)** :
+   - Assistant de bord actif qui analyse en continu la vue affichée et l'objet sélectionné par l'utilisateur.
+   - Diffuse en temps réel des avertissements opérationnels et des insights astrodynamiques proactifs dans le bandeau de commande supérieur.
 
-### 2. Module Text-to-Cypher (UPLINK GLOBALE)
-L'interface utilisateur intègre un chat global permettant d'interroger la base de données Neo4j en langage purement naturel.
-- **Traduction NL -> SQL/Cypher** : L'utilisateur demande *"Quels astéroïdes font plus de 10km ?"*. Le backend FastAPI transmet le schéma Neo4j au LLM, qui génère la requête `Cypher` correspondante et l'exécute de manière sécurisée.
-- **Synthèse des Données (Natural Language Generation)** : Au lieu de retourner le JSON brut (difficile à lire), un **second appel LLM** ingère le JSON de la réponse de la base de données, et formule une réponse claire, concise et professionnelle (style NASA) à l'utilisateur.
+3. **Génération Automatique de Rapports de Mission NASA** :
+   - Générateur de dossiers officiels au format Markdown conforme aux standards *"NASA Technical Memorandum (NASA/TM-2026)"*.
+   - Synthétise l'astrométrie de la cible, son potentiel ISRU (utilisation des ressources in situ), le plan d'atténuation de menace, et cite formellement les archives JPL Horizons et le Knowledge Graph Neo4j.
+   - Export et téléchargement direct en un clic d'un fichier `.md`.
 
-## Architecture Web (Production Ready)
+---
 
-La plateforme web a été redéveloppée pour des performances industrielles :
-- **Backend (FastAPI - Python)** : Expose les endpoints REST (`/api/asteroids`, `/api/mining`, `/api/chat`, etc.) et gère les connexions au driver Neo4j. Les requêtes utilisent des fonctions comme `COALESCE` pour assurer la robustesse des données incomplètes.
-- **Frontend (Next.js 16 + React + TailwindCSS)** : Une interface immersive "Cockpit de Vaisseau Spatial" entièrement refondue dans un thème **"Pristine White Neon"** avec des ombres portées dynamiques et un fond clair pur.
-- **Simulations Graphiques** :
-  - **Graph spatial (Neo4j)** : Visualisation du réseau via `react-force-graph-2d`.
-  - **Modélisation 3D (Shap-E)** : Génération par IA de modèles 3D d'astéroïdes en fonction de la prédiction des matériaux.
-  - **Simulation de Vitesse (Matplotlib)** : Moteur 2D rapide pour simuler visuellement la vitesse d'interception et d'impact des objets spatiaux de manière proportionnelle.
+## 📊 Graph Analytics Avancé (Neo4j)
 
-## Guide de Démarrage
+1. **Prédiction de Nouvelles Relations (Link Prediction GDS)** :
+   - Algorithmes de similarité topologique reliant les missions historiques réussies (`OSIRIS-REx`, `Hayabusa2`, `DART`) aux astéroïdes non explorés.
+   - Calcule un indice de compatibilité pour prédire les cibles idéales des futures sondes d'échantillonnage de surface.
 
-1. **Base de Données (Neo4j)**
-   - Démarrez votre instance locale Neo4j Desktop (port 7687, user: `neo4j`, pass: `exowatch2024`).
+2. **Détection d'Anomalies Structurelles** :
+   - Algorithme d'isolation des nœuds topologiquement excentriques (excentricité $e > 0.65$, orbites atypiques, fortes inclinaisons).
+   - Permet d'isoler des objets d'intérêt scientifique exceptionnel, tels que d'anciennes comètes dormantes ou de potentiels interlopers interstellaires (type 'Oumuamua).
 
-2. **Lancement du Backend (FastAPI)**
-   ```powershell
-   python -m venv .venv312
-   .\.venv312\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   python -m uvicorn api:app --port 8000
-   ```
-   *(Note : Pour Windows/CUDA, ne pas utiliser `--reload` avec Shap-E).*
+3. **Comparateur de Scénarios de Minage Multi-Objectifs** :
+   - 4 curseurs dynamiques de pondération :
+     - Économie d'ergols (Coût $\Delta v$)
+     - Rapidité de transit (Durée de vol en jours)
+     - Sécurité de mission (Stabilité orbitale / PHA)
+     - Richesse en minerais (Platine, Fer-Nickel, Terres rares, Eau)
+   - Recalcul en temps réel de la **Frontière de Pareto** et réordonnancement instantané des cibles avec barres d'efficience et déclenchement de la simulation d'interception 3D.
 
-3. **Lancement du Frontend (Next.js)**
-   ```powershell
-   cd frontend
-   npm install
-   npm run dev -- -p 3000
-   ```
+---
 
-4. **Accès**
-   Ouvrez votre navigateur sur `http://localhost:3000`. L'interface de commande ExoWatch est en ligne.
+## 🎯 Gamification : Mode "Chasseur de Menaces" & Mission Control Live
+
+1. **Chasseur de Menaces (Crowdsourcing Scientifique)** :
+   - Interface participative inspirée de Zooniverse : l'opérateur examine des observations astronomiques suspectes non classifiées.
+   - Analyse spectrale, diamètre et éléments orbitaux.
+   - Choix tactiques : *Confirmer Bénin*, *Classer Suspect*, ou *Assigner Déviation DART*.
+   - Attribution d'XP (+150 XP par validation), montée en grade (*Cadet Orbital* ➔ *Commandant Défense Planétaire* ➔ *Directeur de Mission*), déblocage de badges et animations festives (`canvas-confetti`).
+
+2. **Bandeau Mission Control Live & Ticker DEFCON** :
+   - Statut DEFCON live (DEFCON 3 : Vigilance Active).
+   - Ticker de télémétrie en temps réel (suivi continu de 2,407 géocroiseurs).
+
+---
+
+## 🔬 Rigueur Scientifique & Indice de Confiance
+
+- Chaque astéroïde enrichi par IA affiche désormais un **Indice de Confiance Scientifique explicite** (ex : `88% de Fiabilité`).
+- Traçabilité des sources et bases de justification affichées en clair : `Basé sur Albédo p_V=0.154, Diamètre infrarouge NEOWISE, Classification spectrale SDSS`.
+
+---
+
+## 🚀 Guide de Démarrage Rapide
+
+### 1. Base de Données Neo4j
+- Assurez-vous que Neo4j Desktop est actif sur le port standard :
+  - URI : `bolt://localhost:7687`
+  - Utilisateur : `neo4j`
+  - Mot de passe : `exowatch2024`
+
+### 2. Démarrage de l'API Backend (FastAPI)
+```powershell
+python -m venv .venv312
+.\.venv312\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m uvicorn api:app --port 8000 --reload
+```
+
+### 3. Démarrage du Cockpit Frontend (Next.js)
+```powershell
+cd frontend
+npm install
+npm run dev -- -p 3000
+```
+
+### 4. Accès à la Station
+Ouvrez votre navigateur sur **`http://localhost:3000`**.  
+Le cockpit ExoWatch v2.5 est opérationnel avec l'ensemble des modules 3D, IA, Graph Analytics et Défense Planétaire.
