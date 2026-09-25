@@ -1,173 +1,107 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neon-cyan: #06b6d4;
+  --color-neon-cyan: #00D9FF;
   --color-neon-blue: #3b82f6;
   --color-neon-purple: #a855f7;
-  --color-neon-orange: #f97316;
-  --color-neon-red: #ef4444;
-  --color-neon-green: #10b981;
+  --color-neon-orange: #ffa502;
+  --color-neon-red: #ff4757;
+  --color-neon-green: #2ed573;
+  --color-bg-space: #0A0E14;
+  --color-surface-panel: #131820;
+  --color-surface-card: #0D1117;
+  --color-border-subtle: #1f2937;
 }
 
-/* Base App Body with Dual Theme Support */
-body {
+/* Force Global Deep Space Mission Control Dark Theme */
+:root, html, body {
+  background-color: #0A0E14 !important;
+  color: #E6E9EF !important;
   margin: 0;
   padding: 0;
-  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Light Mode: "Clean White Hologram" */
-body:not(.dark) {
-  background-color: #fafafa;
-  color: #0f172a;
+/* Mission Control Radar Grid Backdrop */
+body {
   background-image: 
-    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.06), transparent 50%),
-    linear-gradient(rgba(6, 182, 212, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
-  background-size: 100% 100%, 32px 32px, 32px 32px;
+    radial-gradient(circle at 1px 1px, #1a2332 1px, transparent 0),
+    radial-gradient(circle at 50% 0%, rgba(0, 217, 255, 0.08), transparent 45%);
+  background-size: 24px 24px, 100% 100%;
   background-attachment: fixed;
+  color-scheme: dark;
 }
 
-/* Dark Mode: "Deep Space Station" */
-body.dark {
-  background-color: #050811;
-  color: #f1f5f9;
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12), transparent 50%),
-    linear-gradient(rgba(6, 182, 212, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(6, 182, 212, 0.06) 1px, transparent 1px);
-  background-size: 100% 100%, 32px 32px, 32px 32px;
-  background-attachment: fixed;
+/* Monospace Scientific / Telemetry Typography */
+.font-mono, .font-technical {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
-/* Technical Data Typography */
-.font-technical {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-/* Cockpit Hologram Card - Soft Colored Glow */
-.hologram-card {
-  position: relative;
-  border-radius: 1rem;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-body:not(.dark) .hologram-card {
-  background: #ffffff;
-  border: 1px solid rgba(6, 182, 212, 0.22);
-  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.08), 0 0 12px 0 rgba(6, 182, 212, 0.04);
-}
-
-body:not(.dark) .hologram-card:hover {
-  border-color: rgba(6, 182, 212, 0.45);
-  box-shadow: 0 8px 30px -4px rgba(6, 182, 212, 0.18), 0 0 20px 2px rgba(6, 182, 212, 0.1);
-}
-
-body.dark .hologram-card {
-  background: rgba(10, 15, 29, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.6), 0 0 15px rgba(6, 182, 212, 0.12);
-}
-
-body.dark .hologram-card:hover {
-  border-color: rgba(6, 182, 212, 0.55);
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.8), 0 0 25px rgba(6, 182, 212, 0.25);
-}
-
-/* Card Laser Scan Animation */
-@keyframes scanline {
-  0% {
-    top: -10%;
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.8;
-  }
-  80% {
-    opacity: 0.8;
-  }
-  100% {
-    top: 110%;
-    opacity: 0;
-  }
-}
-
-.scanline-effect::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #06b6d4, #a855f7, transparent);
-  box-shadow: 0 0 8px #06b6d4;
-  animation: scanline 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  pointer-events: none;
-}
-
-/* Radar Sweep Loading Skeleton */
-@keyframes radar-sweep {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.radar-sweep-loader {
+/* Mission Control HUD Instrument Card */
+.metric-card, .instrument-card {
+  background: linear-gradient(135deg, #131820 0%, #0d1117 100%);
+  border: 1px solid #1f2937;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 217, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
 
-.radar-sweep-loader::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(from 0deg, transparent 0deg, rgba(6, 182, 212, 0.25) 60deg, transparent 60.1deg);
-  animation: radar-sweep 2.5s linear infinite;
-  pointer-events: none;
+.metric-card:hover, .instrument-card:hover {
+  border-color: rgba(0, 217, 255, 0.45);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 217, 255, 0.15);
+  transform: translateY(-2px);
 }
 
-/* Custom Scrollbars */
+/* High-tech Custom Dark Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: transparent;
-}
-body:not(.dark) ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 9999px;
-}
-body:not(.dark) ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-body.dark ::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 9999px;
-}
-body.dark ::-webkit-scrollbar-thumb:hover {
-  background: #06b6d4;
+  background: #0A0E14;
 }
 
-/* Glow Utilities */
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00D9FF;
+  box-shadow: 0 0 8px #00D9FF;
+}
+
+/* Pulsing threat glow animations */
+@keyframes critical-pulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(255, 71, 87, 0.4);
+    border-color: rgba(255, 71, 87, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(255, 71, 87, 0.8);
+    border-color: #ff4757;
+  }
+}
+
+.animate-threat-pulse {
+  animation: critical-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glowing Neon Borders */
 .glow-cyan {
-  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.25);
 }
+
 .glow-red {
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 15px rgba(255, 71, 87, 0.25);
 }
-.glow-amber {
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
-}
-.glow-purple {
-  text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+
+.glow-green {
+  box-shadow: 0 0 15px rgba(46, 213, 115, 0.25);
 }
