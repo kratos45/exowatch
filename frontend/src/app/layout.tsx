@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import CockpitNavbar from "./components/CockpitNavbar";
-import UniversalSearchModal from "./components/UniversalSearchModal";
-import ToastContainer from "./components/ToastContainer";
+import { Navbar } from "@/components/Navbar";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "ExoWatch v2.5 - Cockpit de Défense Planétaire & Minage Spatial",
-  description: "Système de surveillance des géocroiseurs, modélisation 3D temps réel, analyse de graphe Neo4j et IA autonome",
+  title: "ExoWatch — Mission Control & Surveillance NEO",
+  description:
+    "Console opérationnelle de surveillance des astéroïdes géocroiseurs, modélisation physique, analyse d'anomalies ML et agent Text-to-SQL.",
 };
 
 export default function RootLayout({
@@ -15,21 +15,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className="h-full">
-      <body className="min-h-screen flex flex-col transition-colors selection:bg-cyan-200 selection:text-cyan-900">
-        {/* Cockpit Spacecraft Top Navigation Console */}
-        <CockpitNavbar />
+    <html lang="fr" className="dark h-full bg-[#0A0E14] text-[#E6E9EF]">
+      <body className="min-h-screen flex flex-col font-sans bg-[#0A0E14] text-[#E6E9EF] antialiased selection:bg-[#00D9FF]/20 selection:text-[#00D9FF]">
+        <Providers>
+          {/* Mission Control Top Navigation Bar */}
+          <Navbar />
 
-        {/* Global Floating Toast Alert Container */}
-        <ToastContainer />
-
-        {/* Global Universal Search Modal (Cmd+K / Ctrl+K) */}
-        <UniversalSearchModal />
-
-        {/* Main Application Container */}
-        <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 py-4 flex flex-col min-h-0">
-          {children}
-        </main>
+          {/* Main Application Container */}
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 py-6">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

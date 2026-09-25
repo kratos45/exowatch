@@ -25,3 +25,14 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=sqlite:///data/curated/neo_curated.db
+
+  frontend:
+    build: ./frontend
+    container_name: exowatch_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - api
+    restart: unless-stopped
