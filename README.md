@@ -173,20 +173,64 @@ $$\text{Score} = (\text{Proximité} \times 0.40 + \text{Dangerosité} \times 0.3
    - Sélecteur et inspecteur des rapports d'audit JSON (`reports/run_report_*.json`).
    - Bouton d'export direct du rapport JSON audité.
 
+6. **Assistant Conversationnel Text-to-SQL (`pages/5_Assistant.py`)** :
+   - Dialogue naturel avec `neo_curated.db` via composant natif `st.chat_input`.
+   - Garde-fou de sécurité : requêtes `SELECT` uniques, interdiction formelle des mots-clés destructeurs (`DROP`, `DELETE`...).
+   - Exécution physique en lecture seule garantie via URI SQLite (`mode=ro`).
+   - Journalisation intégrale des questions et du SQL généré dans la table `agent_queries`.
+   - Synthèse explicative naturelle en français par LLM et boutons de suggestions directes.
+
+7. **Visualisation 3D Keplerienne (`pages/6_Vue_3D.py`)** :
+   - Rendu spatial 3D sous Plotly (`go.Scatter3d`) dans le repère héliocentrique écliptique J2000.
+   - Calcul des vraies ellipses orbitales à partir des 6 paramètres keplériens ($a, e, i, \Omega, \omega, M$) stockés dans `orbital_elements`.
+   - Soleil au centre, orbite terrestre de référence (1.0 UA), orbites d'astéroïdes colorées par niveau de danger, et mise en surbrillance d'objets ciblés.
+
 ---
 
-## ⚖️ 6. Justification des Choix Techniques
+## ⚡ 6. API REST FastAPI & Déploiement
 
-- **Pourquoi SQLite plutôt qu'un cluster distribué ?**
-  Pour un volume de quelques dizaines de milliers d'enregistrements journaliers, SQLite offre une latence en microsecondes, zéro coût d'infrastructure serveur, et une portabilité absolue en fichier unique (`neo_curated.db`).
-- **Pourquoi Streamlit plutôt qu'une SPA React/Next.js ?**
-  Parfaite adéquation avec l'écosystème data scientifique Python (Pandas, Plotly), temps de cycle de développement ultra-court, élimination de la couche API REST intermédiaire pour un dashboard d'ingénierie de données.
-- **Pourquoi pas de Kafka ou de microservices ?**
-  Les passages d'astéroïdes sont mis à jour par lots quotidiens par le JPL et le Minor Planet Center. Un pipeline batch orchestré et idempotent est 100% conforme à la réalité métier et élimine toute la complexité opérationnelle d'un bus de streaming non justifié.
+### API REST Read-Only (`api/main.py`)
+Expose la base curated via des endpoints FastAPI sécurisés en lecture seule :
+- `GET /health` : Vérification de la santé du système et présence de la base SQLite.
+- `GET /neo` : Liste paginée des astéroïdes avec filtre optionnel `hazardous_only=true`.
+- `GET /neo/{entity_id}` : Télémétrie unifiée complète (observations, sentry, enrichissements IA, anomalies, priorité, paramètres keplériens).
+- `GET /priority/top?n=10` : Top N des objets les plus urgents selon la couche de décision.
+- `GET /runs/latest` : Synthèse et audit du dernier run d'ingestion.
+
+Lancement local :
+```bash
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+```
+Documentation Swagger automatique disponible sur : **`http://localhost:8000/docs`**.
+
+### Conteneurisation Docker & Docker Compose
+Déploiement en 1 commande de l'interface Streamlit et de l'API FastAPI partageant le même volume SQLite monté :
+```bash
+docker compose up --build
+```
+- **Streamlit** : `http://localhost:8501`
+- **FastAPI** : `http://localhost:8000`
+
+### Intégration Continue (CI)
+Le pipeline GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) s'exécute automatiquement sur chaque `push` et `pull_request` :
+1. Installation des dépendances avec pip.
+2. Exécution de la suite complète de 14 tests unitaires avec `pytest`.
+3. Validation du build de l'image Docker de production.
 
 ---
 
-## 📚 7. Documentation Technique Complémentaire
+## ⚖️ 7. Justification des Choix Techniques
+
+- **Pourquoi SQLite en mode URI `mode=ro` ?**
+  Garantit au niveau du moteur C sous-jacent qu'aucune altération de données n'est physiquement possible via l'agent Text-to-SQL ou l'API REST.
+- **Pourquoi Isolation Forest pour la détection d'anomalies ?**
+  Algorithme non supervisé idéal pour détecter les valeurs aberrantes multidimensionnelles (diamètre, vélocité, magnitude, périgée) sans nécessiter de labels préalables.
+- **Pourquoi ReportLab pour l'export PDF ?**
+  Génération directe sans dépendance de rendu navigateur lourd (comme Chrome/Selenium), compatible avec les environnements serveurs headless et conteneurs légers.
+
+---
+
+## 📚 8. Documentation Technique Complémentaire
 - [Modèle Entité-Association & Diagramme Mermaid](docs/er_diagram.md)
 - [Évaluation Critique des Sources & Évolutivité](docs/source_assessment.md)
 - [Contrat de Données Formel (YAML)](config/data_contract.yaml)

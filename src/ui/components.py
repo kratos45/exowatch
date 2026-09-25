@@ -108,9 +108,15 @@ def render_confidence_gauge(value: float, title: str = "Indice de Confiance IA")
     return fig
 
 
-def render_sparkline(values: List[float], color: str = "#00D9FF", height: int = 40) -> go.Figure:
+def render_sparkline(
+    values: List[float], 
+    color: str = "#00D9FF", 
+    height: int = 40,
+    projected_value: Optional[float] = None
+) -> go.Figure:
     """
     Renders an axis-less mini sparkline for quick trend visualization.
+    If projected_value is provided, extends with a dotted line (extrapolation).
     """
     if not values or len(values) < 2:
         values = values or [50.0]
@@ -118,19 +124,40 @@ def render_sparkline(values: List[float], color: str = "#00D9FF", height: int = 
 
     x = list(range(len(values)))
     fig = go.Figure()
+    
+    # Historical trace
     fig.add_trace(go.Scatter(
         x=x,
         y=values,
         mode="lines",
         line=dict(color=color, width=2),
         hoverinfo="y",
+        name="Historique",
         fill="tozeroy",
         fillcolor=f"rgba(0, 217, 255, 0.15)" if color == "#00D9FF" else "rgba(255, 71, 87, 0.15)"
     ))
+
+    # Extrapolated projection trace
+    if projected_value is not None:
+        last_x = x[-1]
+        last_y = values[-1]
+        proj_x = [last_x, last_x + 1]
+        proj_y = [last_y, projected_value]
+        fig.add_trace(go.Scatter(
+            x=proj_x,
+            y=proj_y,
+            mode="lines+markers",
+            line=dict(color=color, width=2, dash="dot"),
+            marker=dict(size=4, color=color),
+            hoverinfo="y",
+            name="Projection"
+        ))
+
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
         margin=dict(l=0, r=0, t=0, b=0),
         height=height,
         xaxis=dict(visible=False, showgrid=False),

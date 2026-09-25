@@ -24,6 +24,7 @@ from src.ui.components import (
 )
 from src.db import get_connection
 from src.decision import get_historical_scores, detect_threat_changes
+from src.analytics.forecast import forecast_priority_trend
 
 st.set_page_config(
     page_title="Briefing Opérationnel - ExoWatch",
@@ -36,6 +37,30 @@ inject_theme()
 
 st.title("🛡️ SALLE DE CONTRÔLE — BRIEFING OPÉRATIONNEL DU JOUR")
 st.caption(f"SYNTHÈSE EXÉCUTIVE DES TRAJECTOIRES CRITIQUES & DÉCISIONS D'ACTION | {datetime.now(timezone.utc).strftime('%d %B %Y - %H:%M UTC')}")
+
+# Fetch latest run_id for PDF generation
+with get_connection() as conn:
+    cursor = conn.cursor()
+    cursor.execute("SELECT run_id FROM pipeline_runs ORDER BY executed_at DESC LIMIT 1;")
+    run_row = cursor.fetchone()
+    latest_run_id = run_row[0] if run_row else "active_run"
+
+# Sidebar PDF Export Button
+with st.sidebar:
+    st.markdown("---")
+    st.subheader("📄 Export Documentaire")
+    from src.reporting.pdf_export import get_brief_pdf_bytes
+    try:
+        pdf_data = get_brief_pdf_bytes(latest_run_id)
+        st.download_button(
+            label="⬇️ Télécharger le Briefing (PDF)",
+            data=pdf_data,
+            file_name=f"exowatch_briefing_{latest_run_id[:8]}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
+    except Exception as e:
+        st.caption(f"Génération PDF indisponible : {e}")
 
 # Fetch top 3 priority asteroids and the daily brief summaries
 with get_connection() as conn:
@@ -151,10 +176,15 @@ else:
                 st.markdown(f"**Vélocité :** `{item['velocity_kmh']:,.0f} km/h`")
                 st.caption(f"Diamètre max : **{item['diameter_km_max']:.3f} km**")
             with col_m4:
-                st.markdown("**Évolution Temporelle :**")
-                spark_history = get_historical_scores(entity_id)
-                spark_fig = render_sparkline(spark_history, color="#ff4757" if score >= 70 else "#00D9FF")
+                st.markdown("**Tendance & Projection ML :**")
+                trend_data = forecast_priority_trend(entity_id)
+                spark_fig = render_sparkline(
+                    trend_data["history"], 
+                    color="#ff4757" if score >= 70 else "#00D9FF",
+                    projected_value=trend_data["projected"]
+                )
                 st.plotly_chart(spark_fig, use_container_width=True)
+                st.caption(f"Est. Prochain Run : **{trend_data['next_value_estimate']:.1f}** pts (Pente : {trend_data['slope']:+.1f})")
 
 st.markdown("---")
 
@@ -205,3 +235,40 @@ with col_mining:
         st.plotly_chart(fig_gauge, use_container_width=True)
     else:
         st.info("Aucune opportunité minière qualifiée pour le moment.")
+
+st.markdown("---")
+
+# SECTION 3: ATYPICAL OBJECTS DETECTED (ISOLATION FOREST ML)
+st.subheader("🧪 4. OBJETS ATYPIQUES DÉTECTÉS (ISOLATION FOREST ML)")
+st.caption("Astéroïdes présentant des combinaisons astrophysiques anormales (diamètre/vélocité/magnitude/distance).")
+
+with get_connection() as conn:
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT a.entity_id, a.anomaly_score, a.is_anomaly, n.name, n.diameter_km_max, n.velocity_kmh, n.miss_distance_km, n.absolute_magnitude
+        FROM anomaly_scores a
+        JOIN neo_observations n ON a.entity_id = n.entity_id
+        WHERE a.run_id = (SELECT run_id FROM anomaly_scores ORDER BY computed_at DESC LIMIT 1)
+        ORDER BY a.anomaly_score ASC
+        LIMIT 5;
+    """)
+    atypical_rows = [dict(r) for r in cursor.fetchall()]
+
+if atypical_rows:
+    df_atypical = pd.DataFrame(atypical_rows)
+    df_atypical["Statut"] = df_atypical["is_anomaly"].apply(lambda x: "🚨 ANOMALIE ML" if x else "Divergence Modérée")
+    st.dataframe(
+        df_atypical[[
+            "entity_id", "name", "anomaly_score", "Statut",
+            "diameter_km_max", "velocity_kmh", "miss_distance_km", "absolute_magnitude"
+        ]].style.format({
+            "anomaly_score": "{:.4f}",
+            "diameter_km_max": "{:.3f} km",
+            "velocity_kmh": "{:,.0f} km/h",
+            "miss_distance_km": "{:,.0f} km",
+            "absolute_magnitude": "{:.1f} H"
+        }),
+        use_container_width=True
+    )
+else:
+    st.info("Aucun score d'anomalie enregistré. Lancez une exécution batch pour exécuter le modèle Isolation Forest.")

@@ -82,6 +82,27 @@ def load_curated_sentry_scores(records: list) -> int:
     return len(records)
 
 
+def load_curated_orbital_elements(records: list) -> int:
+    """Inserts Keplerian orbital elements into orbital_elements table."""
+    if not records:
+        return 0
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.executemany("""
+            INSERT INTO orbital_elements (
+                entity_id, semi_major_axis, eccentricity, inclination,
+                ascending_node_longitude, perihelion_argument, mean_anomaly,
+                retrieved_at, source_raw_file
+            ) VALUES (
+                :entity_id, :semi_major_axis, :eccentricity, :inclination,
+                :ascending_node_longitude, :perihelion_argument, :mean_anomaly,
+                :retrieved_at, :source_raw_file
+            );
+        """, records)
+        conn.commit()
+    return len(records)
+
+
 def record_rejected_rows(rejected_df: pd.DataFrame, run_id: str):
     """Logs rejected observations into SQLite rejected_rows table."""
     if rejected_df.empty:
@@ -178,10 +199,21 @@ def run_pipeline(raw_file: Path = None, sentry_file: Path = None, enable_enrich:
     sentry_records = transform_sentry_records(sentry_file)
     load_curated_sentry_scores(sentry_records)
 
+    # Load Keplerian Orbital Elements
+    from src.transform import transform_orbital_records
+    orbital_records = transform_orbital_records(raw_file)
+    load_curated_orbital_elements(orbital_records)
+    logger.info(f"Step 5b: Loaded {len(orbital_records)} Keplerian orbital element records.")
+
     # Step 6: Decision Layer & Priority Scoring
     from src.decision import calculate_and_store_priority_scores
     scored_items = calculate_and_store_priority_scores(run_id)
     logger.info(f"Step 6: Computed priority scores for {len(scored_items)} asteroids.")
+
+    # Step 6b: Machine Learning Anomaly Detection (Isolation Forest)
+    from src.analytics.anomaly import calculate_and_store_anomaly_scores
+    anomaly_items = calculate_and_store_anomaly_scores(run_id)
+    logger.info(f"Step 6b: Isolation Forest evaluated {len(anomaly_items)} asteroids for structural anomalies.")
 
     # Step 7: AI Enrichment & Daily Briefing
     from src.enrich import generate_daily_brief

@@ -125,6 +125,47 @@ def init_db():
             );
         """)
 
+        # 7. anomaly_scores (Isolation Forest Machine Learning)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS anomaly_scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_id TEXT NOT NULL,
+                anomaly_score REAL NOT NULL,
+                is_anomaly BOOLEAN NOT NULL,
+                run_id TEXT NOT NULL,
+                computed_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        """)
+
+        # 8. agent_queries (Text-to-SQL Assistant Audit)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS agent_queries (
+                query_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                question TEXT NOT NULL,
+                generated_sql TEXT NOT NULL,
+                was_valid BOOLEAN NOT NULL,
+                row_count INTEGER,
+                model_used TEXT NOT NULL,
+                asked_at TEXT NOT NULL DEFAULT (datetime('now'))
+            );
+        """)
+
+        # 9. orbital_elements (Keplerian Orbital Dynamics)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS orbital_elements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_id TEXT NOT NULL,
+                semi_major_axis REAL,
+                eccentricity REAL,
+                inclination REAL,
+                ascending_node_longitude REAL,
+                perihelion_argument REAL,
+                mean_anomaly REAL,
+                retrieved_at TEXT NOT NULL DEFAULT (datetime('now')),
+                source_raw_file TEXT NOT NULL
+            );
+        """)
+
         # Indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_neo_entity_id ON neo_observations(entity_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_ai_entity_id ON ai_enrichments(entity_id);")
@@ -132,6 +173,9 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_run_id ON pipeline_runs(run_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_priority_entity_id ON priority_scores(entity_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_priority_run_id ON priority_scores(run_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_anomaly_entity_id ON anomaly_scores(entity_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_anomaly_run_id ON anomaly_scores(run_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_orbital_entity_id ON orbital_elements(entity_id);")
 
         # Views
         cursor.execute("DROP VIEW IF EXISTS view_hazardous;")

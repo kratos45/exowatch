@@ -13,3 +13,4 @@ data/curated/*.db
 frontend/node_modules/
 frontend/.next/
 *.gif
+reports/*.pdf

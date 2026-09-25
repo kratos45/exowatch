@@ -21,10 +21,16 @@ inject_theme()
 st.title("🚨 SURVEILLANCE DES OBJETS POTENTIELLEMENT DANGEREUX")
 st.caption("TELEMETRIE CROISÉE NASA NEOWS & SENTRY RISK DATABASE (VUE SQL `view_hazardous`)")
 
-# Load data from view_hazardous
+# Load data from view_hazardous + latest anomaly score
 with get_connection() as conn:
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM view_hazardous;")
+    cursor.execute("""
+        SELECT 
+            h.*,
+            (SELECT a.anomaly_score FROM anomaly_scores a WHERE a.entity_id = h.entity_id ORDER BY a.computed_at DESC LIMIT 1) AS anomaly_score,
+            (SELECT a.is_anomaly FROM anomaly_scores a WHERE a.entity_id = h.entity_id ORDER BY a.computed_at DESC LIMIT 1) AS is_anomaly
+        FROM view_hazardous h;
+    """)
     rows = [dict(r) for r in cursor.fetchall()]
 
 df_hazardous = pd.DataFrame(rows)
@@ -54,10 +60,15 @@ else:
         step=0.05
     )
 
+    only_anomalies = st.sidebar.checkbox("Afficher uniquement les anomalies ML", value=False)
+
     filtered_df = df_hazardous[
         (df_hazardous["miss_distance_km"] <= max_dist_filter) &
         (df_hazardous["diameter_km_max"] >= min_diameter_filter)
     ].copy()
+
+    if only_anomalies and "is_anomaly" in filtered_df.columns:
+        filtered_df = filtered_df[filtered_df["is_anomaly"] == 1]
 
     # KPI Summary Cards using HUD Design System
     col1, col2, col3 = st.columns(3)
@@ -79,6 +90,8 @@ else:
         "entity_id", "name", "observed_at", "diameter_km_max",
         "velocity_kmh", "miss_distance_km", "palermo_scale", "torino_scale"
     ]
+    if "anomaly_score" in filtered_df.columns:
+        display_cols.append("anomaly_score")
 
     st.dataframe(
         filtered_df[display_cols].style.format({
@@ -86,7 +99,8 @@ else:
             "velocity_kmh": "{:,.1f} km/h",
             "miss_distance_km": "{:,.0f} km",
             "palermo_scale": "{:.2f}",
-            "torino_scale": "{:.0f}"
+            "torino_scale": "{:.0f}",
+            "anomaly_score": "{:.4f}"
         }),
         use_container_width=True
     )

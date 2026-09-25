@@ -1,12 +1,27 @@
-version: '3.8'
 services:
-  neo4j:
-    image: neo4j:5
-    container_name: exowatch_neo4j
+  streamlit:
+    build: .
+    container_name: exowatch_streamlit
     ports:
-      - "7474:7474"
-      - "7687:7687"
-    environment:
-      - NEO4J_AUTH=neo4j/exowatch2024
+      - "8501:8501"
     volumes:
-      - ./data/neo4j_data:/data
+      - ./data:/app/data
+      - ./reports:/app/reports
+    command: streamlit run src/app.py --server.address=0.0.0.0 --server.port=8501
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=sqlite:///data/curated/neo_curated.db
+      - NASA_API_KEY=DEMO_KEY
+
+  api:
+    build: .
+    container_name: exowatch_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=sqlite:///data/curated/neo_curated.db
