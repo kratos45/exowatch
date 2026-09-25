@@ -262,11 +262,11 @@ if atypical_rows:
             "entity_id", "name", "anomaly_score", "Statut",
             "diameter_km_max", "velocity_kmh", "miss_distance_km", "absolute_magnitude"
         ]].style.format({
-            "anomaly_score": "{:.4f}",
-            "diameter_km_max": "{:.3f} km",
-            "velocity_kmh": "{:,.0f} km/h",
-            "miss_distance_km": "{:,.0f} km",
-            "absolute_magnitude": "{:.1f} H"
+            "anomaly_score": lambda x: f"{x:.4f}" if pd.notna(x) and x is not None else "—",
+            "diameter_km_max": lambda x: f"{x:.3f} km" if pd.notna(x) and x is not None else "—",
+            "velocity_kmh": lambda x: f"{x:,.0f} km/h" if pd.notna(x) and x is not None else "—",
+            "miss_distance_km": lambda x: f"{x:,.0f} km" if pd.notna(x) and x is not None else "—",
+            "absolute_magnitude": lambda x: f"{x:.1f} H" if pd.notna(x) and x is not None else "—"
         }),
         use_container_width=True
     )

@@ -95,12 +95,12 @@ else:
 
     st.dataframe(
         filtered_df[display_cols].style.format({
-            "diameter_km_max": "{:.3f} km",
-            "velocity_kmh": "{:,.1f} km/h",
-            "miss_distance_km": "{:,.0f} km",
-            "palermo_scale": "{:.2f}",
-            "torino_scale": "{:.0f}",
-            "anomaly_score": "{:.4f}"
+            "diameter_km_max": lambda x: f"{x:.3f} km" if pd.notna(x) and x is not None else "—",
+            "velocity_kmh": lambda x: f"{x:,.1f} km/h" if pd.notna(x) and x is not None else "—",
+            "miss_distance_km": lambda x: f"{x:,.0f} km" if pd.notna(x) and x is not None else "—",
+            "palermo_scale": lambda x: f"{x:.2f}" if pd.notna(x) and x is not None else "—",
+            "torino_scale": lambda x: f"{int(x)}" if pd.notna(x) and x is not None else "0",
+            "anomaly_score": lambda x: f"{x:.4f}" if pd.notna(x) and x is not None else "—"
         }),
         use_container_width=True
     )
