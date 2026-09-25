@@ -1,12 +1,14 @@
-"""
-ExoWatch NEO Intelligence - Main Dashboard
-Multi-page Streamlit Application
-"""
+import sys
+from pathlib import Path
+
+# Add project root directory to sys.path so 'src.*' imports work regardless of execution location
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from pathlib import Path
 from dotenv import load_dotenv
 
 from src.db import init_db, get_connection

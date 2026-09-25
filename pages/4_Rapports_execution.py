@@ -1,13 +1,14 @@
-"""
-Page 4: Rapports d'Exécution & Métriques de Qualité
-Inspection des artefacts JSON de run et évolution temporelle des rejets.
-"""
+import sys
+from pathlib import Path
+
+ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
-from pathlib import Path
 from src.db import get_connection
 
 st.set_page_config(page_title="Rapports d'Exécution - ExoWatch", page_icon="📜", layout="wide")
