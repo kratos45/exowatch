@@ -1,0 +1,65 @@
+version: "1.0.0"
+dataset: "neo_observations"
+contract_date: "2026-03"
+
+business_key:
+  fields:
+    - entity_id
+    - observed_at
+  description: "Unicité par astéroïde et date d'observation"
+
+rules:
+  - id: "R1"
+    name: "entity_id_not_null"
+    field: "entity_id"
+    type: "not_null"
+    action: "reject"
+    description: "L'identifiant NeoWS est obligatoire"
+
+  - id: "R2"
+    name: "observed_at_valid_date"
+    field: "observed_at"
+    type: "date_format"
+    params:
+      format: "%Y-%m-%d"
+      max_date: "today"
+    action: "reject"
+    description: "Date d'observation valide et non future"
+
+  - id: "R3"
+    name: "diameter_positive"
+    field: "diameter_km_min"
+    type: "range"
+    params:
+      min: 0.0001
+      max: 1000.0
+    action: "reject"
+    description: "Diamètre estimé strictement positif et plausible"
+
+  - id: "R4"
+    name: "velocity_plausible_range"
+    field: "velocity_kmh"
+    type: "range"
+    params:
+      min: 1.0
+      max: 200000.0
+    action: "flag"
+    description: "Vitesse relative plausible (flag si hors bornes, non bloquant)"
+
+  - id: "R5"
+    name: "unique_business_key"
+    field:
+      - "entity_id"
+      - "observed_at"
+    type: "uniqueness"
+    action: "deduplicate"
+    description: "Pas de doublon sur la clé métier (conserve la plus récente)"
+
+  - id: "R6"
+    name: "miss_distance_positive"
+    field: "miss_distance_km"
+    type: "range"
+    params:
+      min: 0.0
+    action: "reject"
+    description: "Distance de croisement positive ou nulle"

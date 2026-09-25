@@ -1,0 +1,3 @@
+"""
+ExoWatch package initialization.
+"""

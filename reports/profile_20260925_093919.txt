@@ -1,0 +1,65 @@
+============================================================
+EXOWATCH DATA PROFILING REPORT
+Date: 2026-09-25T09:39:19.770602+00:00
+Source file: C:\Users\HP\AppData\Local\Temp\pytest-of-HP\pytest-0\test_pipeline_execution_idempo0\raw_sample.json
+============================================================
+
+1. GENERAL METRICS
+   Total extracted observations: 2
+   Columns: ['entity_id', 'name', 'observed_at', 'diameter_km_min', 'diameter_km_max', 'velocity_kmh', 'miss_distance_km', 'is_hazardous', 'absolute_magnitude', 'orbiting_body']
+
+2. BUSINESS KEY & UNIQUENESS
+   Business key: (entity_id, observed_at)
+   Duplicate rows count: 0 (0.00%)
+
+3. MISSING VALUES ANALYSIS
+   - entity_id             : 0 missing (0.0%)
+   - name                  : 0 missing (0.0%)
+   - observed_at           : 0 missing (0.0%)
+   - diameter_km_min       : 0 missing (0.0%)
+   - diameter_km_max       : 0 missing (0.0%)
+   - velocity_kmh          : 0 missing (0.0%)
+   - miss_distance_km      : 0 missing (0.0%)
+   - is_hazardous          : 0 missing (0.0%)
+   - absolute_magnitude    : 0 missing (0.0%)
+   - orbiting_body         : 0 missing (0.0%)
+
+4. NUMERICAL DISTRIBUTIONS
+   * diameter_km_min:
+       min:    0.0800
+       max:    0.4500
+       median: 0.2650
+       mean:   0.2650
+       std:    0.2616
+   * diameter_km_max:
+       min:    0.1800
+       max:    0.9500
+       median: 0.5650
+       mean:   0.5650
+       std:    0.5445
+   * velocity_kmh:
+       min:    45200.0000
+       max:    62000.0000
+       median: 53600.0000
+       mean:   53600.0000
+       std:    11879.3939
+   * miss_distance_km:
+       min:    3800000.0000
+       max:    12500000.0000
+       median: 8150000.0000
+       mean:   8150000.0000
+       std:    6151828.9963
+   * absolute_magnitude:
+       min:    18.5000
+       max:    22.1000
+       median: 20.3000
+       mean:   20.3000
+       std:    2.5456
+
+5. HAZARDOUS CLASS BALANCE
+   - is_hazardous = False: 1 (50.0%)
+   - is_hazardous = True: 1 (50.0%)
+
+============================================================
+END OF PROFILE REPORT
+============================================================
