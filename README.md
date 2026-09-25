@@ -7,6 +7,24 @@ ExoWatch v2.5 transforme la plateforme en un **véritable cockpit immersif de d�
 
 ---
 
+## 🎨 Design System & Architecture Cockpit (Next.js 16 + React + TailwindCSS)
+
+### 1. Palette & Thème Bimodal
+- **Thème "Clean White Hologram" (Par défaut)** : Fond blanc pur / gris perle ultra-lumineux (`#FAFAFA`) avec accents néon subtils réservés aux data-visualisations et aux signaux critiques (Cyan électrique `#06b6d4`, Violet plasma `#a855f7`, Orange alerte `#f97316`, Rouge PHA `#ef4444`).
+- **Thème "Deep Space Station" (Mode Sombre Toggle)** : Fond noir stellaire et bleu abysse (`#050811`), idéal pour une immersion totale dans la vue 3D et le graphe topologique.
+- **Effet "Hologramme sur Surface Propre"** : Remplacement des bordures rigides par des ombres portées colorées douces (`box-shadow glow`) et du flou d'arrière-plan (`backdrop-filter`).
+- **Typographie Duale** : Police `system sans-serif` fluide pour l'ergonomie et la lecture des synthèses + police `monospace technique` pour les données scientifiques (coordonnées, $\Delta v$, albédo, magnitude).
+
+### 2. Composants Signature
+- **Cards "Instrument de Bord"** : Coins arrondis (`rounded-2xl`), lueur réactive au survol et micro-animation laser de scan (`scanline`).
+- **Confidence Meter** : Jauge circulaire SVG réutilisable affichant l'indice de fiabilité des prédictions IA (avec code couleur adaptatif : émeraude, cyan, ambre, orange).
+- **Badges de Statut Pulsants** : Niveaux de menace (Nominal, Surveillance, Élevé, Critique) avec point de pulsation CSS dynamique.
+- **Recherche Universelle (`Cmd+K` / `Ctrl+K`)** : Modal de recherche globale avec accès instantané aux astéroïdes, aux vues et aux outils.
+- **Panneau Latéral Contextuel Permanent** : Affichage temps réel de l'objet sous suivi actif avec accès direct aux simulations et au mini-chat Uplink NL ➔ Cypher.
+- **Système de Toasts Animés** : Notifications temps réel glissant depuis le bord supérieur avec couleur et halo adaptés au niveau d'alerte.
+
+---
+
 ## 🌌 Immersion & Cockpit 3D Vivant (Three.js)
 
 1. **Système Solaire Vivant en 3D Temps Réel** :

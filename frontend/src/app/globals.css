@@ -1,50 +1,173 @@
 @import "tailwindcss";
 
 @theme {
-  --color-neon-cyan: #0ff;
-  --color-neon-red: #ff3333;
-  --color-neon-orange: #ff9900;
-  --color-neon-green: #33ff33;
-  --color-cockpit-bg: #050505;
-  --color-cockpit-panel: #111111;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --color-neon-cyan: #06b6d4;
+  --color-neon-blue: #3b82f6;
+  --color-neon-purple: #a855f7;
+  --color-neon-orange: #f97316;
+  --color-neon-red: #ef4444;
+  --color-neon-green: #10b981;
 }
 
+/* Base App Body with Dual Theme Support */
 body {
-  background-color: #ffffff;
-  color: #111827;
-  font-family: var(--font-mono);
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Light Mode: "Clean White Hologram" */
+body:not(.dark) {
+  background-color: #fafafa;
+  color: #0f172a;
   background-image: 
-    linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 30px 30px;
+    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.06), transparent 50%),
+    linear-gradient(rgba(6, 182, 212, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
   background-attachment: fixed;
 }
 
-/* Custom Scrollbar */
+/* Dark Mode: "Deep Space Station" */
+body.dark {
+  background-color: #050811;
+  color: #f1f5f9;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.12), transparent 50%),
+    linear-gradient(rgba(6, 182, 212, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.06) 1px, transparent 1px);
+  background-size: 100% 100%, 32px 32px, 32px 32px;
+  background-attachment: fixed;
+}
+
+/* Technical Data Typography */
+.font-technical {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Cockpit Hologram Card - Soft Colored Glow */
+.hologram-card {
+  position: relative;
+  border-radius: 1rem;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+body:not(.dark) .hologram-card {
+  background: #ffffff;
+  border: 1px solid rgba(6, 182, 212, 0.22);
+  box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.08), 0 0 12px 0 rgba(6, 182, 212, 0.04);
+}
+
+body:not(.dark) .hologram-card:hover {
+  border-color: rgba(6, 182, 212, 0.45);
+  box-shadow: 0 8px 30px -4px rgba(6, 182, 212, 0.18), 0 0 20px 2px rgba(6, 182, 212, 0.1);
+}
+
+body.dark .hologram-card {
+  background: rgba(10, 15, 29, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.6), 0 0 15px rgba(6, 182, 212, 0.12);
+}
+
+body.dark .hologram-card:hover {
+  border-color: rgba(6, 182, 212, 0.55);
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.8), 0 0 25px rgba(6, 182, 212, 0.25);
+}
+
+/* Card Laser Scan Animation */
+@keyframes scanline {
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 110%;
+    opacity: 0;
+  }
+}
+
+.scanline-effect::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #06b6d4, #a855f7, transparent);
+  box-shadow: 0 0 8px #06b6d4;
+  animation: scanline 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+/* Radar Sweep Loading Skeleton */
+@keyframes radar-sweep {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.radar-sweep-loader {
+  position: relative;
+  overflow: hidden;
+}
+
+.radar-sweep-loader::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(6, 182, 212, 0.25) 60deg, transparent 60.1deg);
+  animation: radar-sweep 2.5s linear infinite;
+  pointer-events: none;
+}
+
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #f9fafb;
+  background: transparent;
 }
-::-webkit-scrollbar-thumb {
+body:not(.dark) ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neon-cyan);
+body:not(.dark) ::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+body.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+body.dark ::-webkit-scrollbar-thumb:hover {
+  background: #06b6d4;
 }
 
-.panel-border {
-  border: 1px solid rgba(0, 255, 255, 0.4);
-  box-shadow: 0 0 15px rgba(0, 255, 255, 0.15), inset 0 0 10px rgba(0, 255, 255, 0.1);
-  background-color: #ffffff;
-}
-
+/* Glow Utilities */
 .glow-cyan {
-  text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.6);
 }
 .glow-red {
-  text-shadow: 0 0 5px rgba(255, 51, 51, 0.8);
+  text-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+.glow-amber {
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+.glow-purple {
+  text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
 }
