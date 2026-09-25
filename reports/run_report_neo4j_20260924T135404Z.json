@@ -1,0 +1,18 @@
+{
+  "pipeline": "exowatch_neo4j",
+  "executed_at": "2026-09-24T13:49:37.100295+00:00",
+  "exoplanets": {
+    "input": 6366,
+    "accepted": 6363,
+    "rejected": 3
+  },
+  "neos": {
+    "input": 200,
+    "accepted": 200,
+    "rejected": 0
+  },
+  "sentry": {
+    "inserted": 2207
+  },
+  "duration_seconds": 272.41
+}

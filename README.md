@@ -1,91 +1,74 @@
-# ExoWatch 🪐 & Near-Earth Objects (NEOs) ☄️
+# ExoWatch 🪐 & Near-Earth Objects (NEOs) ☄️ - Version 2.0 (Production)
 
 ## Objectif Final du Projet
-Détecter et explorer les objets célestes atypiques ou dangereux à l'aide de l'intelligence artificielle, des statistiques, et de la modélisation 3D avancée.
-Initialement conçu pour analyser les **exoplanètes** (planètes en dehors de notre système solaire) et identifier celles présentant des caractéristiques physiques anormales, le projet a évolué pour intégrer les **objets géocroiseurs (NEOs)** — des astéroïdes orbitant le Soleil et s'approchant de la Terre. L'objectif final est de centraliser, nettoyer via un pipeline ETL robuste, et visualiser ces données dans une application interactive offrant des **simulations photoréalistes**. Ce projet facilite la compréhension de notre univers, allant de l'astrophysique lointaine à la sécurité planétaire immédiate (notamment grâce au suivi des risques d'impact).
+Détecter, explorer et analyser les objets célestes atypiques ou dangereux à l'aide de l'intelligence artificielle, des graphes de connaissances (Knowledge Graphs) et de la modélisation 3D avancée.
+Cette version 2.0 marque une refonte totale de l'architecture. Fini SQLite et Streamlit : le projet s'appuie désormais sur une stack moderne "Production Ready" avec **Neo4j**, **FastAPI**, **Next.js**, et l'intégration profonde des **LLMs (Large Language Models)** pour l'enrichissement des données et l'interaction en langage naturel.
 
-## Pipeline ETL et Base de Données (SQLite)
-Le projet repose sur un pipeline de données complet (ETL : Extract, Transform, Load) garantissant la reproductibilité et la qualité des données astronomiques.
-- **Extract (Collecte)** : 
-  - *Exoplanètes* : Récupérées via le service TAP de la *NASA Exoplanet Archive* au format CSV (`src/collect.py`).
-  - *NEOs* : Importés via l'API *NASA NeoWs (Near Earth Object Web Service)* au format JSON (`src/collect_neo.py`).
-  - *Sentry (Nouveau)* : Données sur les risques d'impact planétaire importées via l'API *NASA JPL Sentry* (`src/collect_sentry.py`).
-  Les données brutes sont conservées de manière immuable et horodatée dans le dossier `data/raw/` pour assurer la traçabilité.
-- **Transform (Validation & Transformation)** : Les données subissent des contrôles de qualité (absence de valeurs clés, mesures physiquement impossibles). Pour les exoplanètes, le système calcule deux scores d'atypicité (un heuristique statistique et un modèle multivarié basé sur le Machine Learning - *Isolation Forest* implémenté en pur Numpy).
-- **Load (Chargement)** : Les données nettoyées, enrichies et validées sont insérées via des opérations idempotentes (`INSERT OR REPLACE`) dans une base de données **SQLite locale** (`data/curated/exowatch.db`). Cette approche centralisée élimine le besoin de dépendances système lourdes (aucune DLL problématique) tout en offrant toute la puissance relationnelle du SQL.
+## Architecture Data : Le Graphe de Connaissances (Neo4j)
+La base de données relationnelle a été remplacée par **Neo4j**, une base de données orientée graphes, permettant de modéliser l'univers tel qu'il est : un réseau d'interactions complexes.
 
-## Architecture du Code source
-- `data/raw/` : Archives immuables des collectes (CSV / JSON).
-- `data/curated/exowatch.db` : Base de données SQLite unique contenant 3 tables : `exoplanets`, `neo_objects`, et `sentry_impact_risks`.
-- `data/rejected/` : Fichiers CSV contenant les lignes ayant échoué à la validation, avec le motif détaillé du rejet.
-- `src/db.py` : Script de définition du schéma relationnel et d'initialisation de la base SQLite.
-- `src/collect*.py` : Connecteurs aux différentes API de la NASA (Exoplanètes, NeoWs, JPL Sentry).
-- `src/validate.py` : Moteur de règles de qualité de données.
-- `src/transform.py` : Le cœur de l'ETL (filtrage, calculs complexes, connexion et insertion SQL).
-- `src/sim3d.py` : Moteur de génération de scènes WebGL (Three.js) pour les simulations photoréalistes.
-- `app.py` : L'interface utilisateur (UI) interactive sous Streamlit (cartes de profil, tableaux, graphes de population, et moteur 3D).
+### Modélisation en Graphe (Cypher)
+- **Nœuds (Nodes)** : `Exoplanet`, `Star`, `NEO` (Near-Earth Objects), `Planet` (ex: Earth, Mars, Jupiter).
+- **Relations (Edges)** : 
+  - `(Exoplanet)-[:ORBITS]->(Star)` : Lie une exoplanète à son étoile hôte.
+  - `(NEO)-[:THREATENS {probability}]->(Planet)` : Relie un objet géocroiseur dangereux (Sentry) à la planète qu'il menace, avec la probabilité d'impact stockée comme attribut de la relation.
+- Cette structure permet des requêtes complexes ultra-rapides, comme par exemple l'analyse de tous les objets croisant l'orbite terrestre.
 
-## Lexique Scientifique et Paramètres Orbitaux
+## Pipeline ETL (Extract, Transform, Load)
+Le projet repose sur un pipeline de données complet et robuste pour garantir la qualité des données intégrées à notre base de graphes :
+- **Extract (Collecte)** : Données récupérées via les API de la NASA (*NASA Exoplanet Archive*, *NeoWs*, et *JPL Sentry*) et stockées de manière immuable en local.
+- **Transform (Validation, ML & Augmentation)** :
+  - **Nettoyage** : Filtrage des données aberrantes ou incomplètes.
+  - **Machine Learning (Isolation Forest)** : Calcul de scores d'anomalies multidimensionnels pour détecter les exoplanètes atypiques.
+  - **Augmentation par LLM** : (Voir section suivante) Injection d'inférences IA pour pallier le manque de données physiques.
+- **Load (Chargement Neo4j)** : Les entités et leurs relations (`ORBITS`, `THREATENS`) sont structurées et insérées dans le graphe de connaissances avec des requêtes Cypher optimisées (gestion des `MERGE`).
 
-### Pour les Exoplanètes (Astrométrie et Physique stellaire)
-- **Rayon (pl_rade)** : Taille de la planète mesurée en *rayons terrestres* (R⊕). Un indicateur fondamental pour distinguer les petites planètes telluriques des géantes gazeuses.
-- **Masse (pl_bmasse)** : Quantité de matière de la planète mesurée en *masses terrestres* (M⊕).
-- **Période orbitale (pl_orbper)** : Le temps (en jours terrestres) mis par la planète pour faire une révolution complète autour de son étoile. 
-- **Température effective (st_teff)** : La température de surface (en Kelvin) de l'étoile hôte. Elle est cruciale pour déterminer la "zone habitable".
+## LLM au Cœur du Système (Intelligence Artificielle)
 
-### Pour les Objets Géocroiseurs - NEOs (Mécanique Céleste)
-- **Demi-grand axe (semi_major_axis - *a*)** : La distance moyenne entre l'astéroïde et le Soleil, mesurée en Unités Astronomiques (1 UA = distance Terre-Soleil, soit ~150 millions de km).
-- **Excentricité (eccentricity - *e*)** : Décrit la forme géométrique de l'orbite. À `0`, l'orbite est un cercle parfait. Plus elle s'approche de `1`, plus l'orbite est écrasée (elliptique).
-- **PHA (Potentially Hazardous Asteroid)** : Un statut (Oui/Non) attribué par la NASA aux objets croisant dangereusement l'orbite terrestre.
-- **Distance de frôlement (Miss Distance)** : La distance minimale séparant l'astéroïde de la Terre lors de son passage le plus proche (souvent exprimée en distance lunaire).
+L'IA n'est plus un simple gadget d'explication, elle pilote désormais le cœur de la plateforme, de la donnée brute jusqu'à l'interaction utilisateur.
 
-## Fonctionnalités Avancées : Interface, IA & WebGL
-L'interface de l'application va bien au-delà de la simple restitution de données brutes :
+### 1. Augmentation et Enrichissement des Données (Data Augmentation)
+Les API de la NASA (NeoWs, Sentry) fournissent des données orbitales et physiques basiques, mais souvent incomplètes pour l'exploitation minière ou l'analyse des matériaux.
+Durant l'ETL, nous utilisons un LLM (via `OpenAI/OpenRouter`) pour **enrichir la base de données Neo4j** :
+- **Prédiction de Matériaux** : L'IA analyse les caractéristiques orbitales, l'albédo et la taille pour prédire la composition probable de l'astéroïde (Roche, Silicate, Fer, Nickel, Glace).
+- **Analyse de Porosité et de Risque** : Le LLM attribue un score de porosité, détermine un niveau de risque textuel, et évalue si l'objet est "Exploitable" d'un point de vue minier.
+- Ces métadonnées générées par l'IA sont injectées de manière structurée dans les nœuds `NEO` de la base Neo4j.
 
-1. **Carte de Profil Dynamique (KPIs)** :
-   Sélectionnez n'importe quel objet pour générer instantanément sa "carte d'identité". Pour les astéroïdes, le système affiche leur vitesse de survol en km/h, leur taille estimée (en mètres) et leur distance de frôlement calculée lors de leur dernier passage, offrant une lisibilité humaine immédiate.
+### 2. Module Text-to-Cypher (UPLINK GLOBALE)
+L'interface utilisateur intègre un chat global permettant d'interroger la base de données Neo4j en langage purement naturel.
+- **Traduction NL -> SQL/Cypher** : L'utilisateur demande *"Quels astéroïdes font plus de 10km ?"*. Le backend FastAPI transmet le schéma Neo4j au LLM, qui génère la requête `Cypher` correspondante et l'exécute de manière sécurisée.
+- **Synthèse des Données (Natural Language Generation)** : Au lieu de retourner le JSON brut (difficile à lire), un **second appel LLM** ingère le JSON de la réponse de la base de données, et formule une réponse claire, concise et professionnelle (style NASA) à l'utilisateur.
 
-2. **L'IA Explicative (Google Gemini)** : 
-   Totalement intégrée, l'IA génère des explications vulgarisées en temps réel. Si un utilisateur sélectionne une planète détectée comme anormale, Gemini formule des hypothèses astrophysiques plausibles. Pour un astéroïde, Gemini décortique ses paramètres orbitaux pour expliquer clairement pourquoi sa trajectoire est (ou n'est pas) une menace.
+## Architecture Web (Production Ready)
 
-3. **Simulateur Spatial Photoréaliste (Three.js)** :
-   Un composant sur-mesure injecte un véritable moteur 3D (WebGL) directement dans Streamlit pour animer les systèmes célestes !
-   - **Moteur interactif** : L'utilisateur peut pivoter, zoomer et se déplacer dans la scène librement (`OrbitControls`).
-   - **Modélisation des NEOs** : Affiche le Soleil brillant, la Terre (avec texture HD) orbitant en 1 UA, et modélise en direct l'orbite elliptique de l'astéroïde en calculant sa trajectoire de Kepler. S'il s'agit d'un PHA, sa couleur devient rouge.
-   - **Modélisation des Exoplanètes** : L'étoile prend une teinte basée sur sa température (`st_teff`) tandis que l'exoplanète orbite avec une taille extrapolée de son vrai rayon physique.
+La plateforme web a été redéveloppée pour des performances industrielles :
+- **Backend (FastAPI - Python)** : Expose les endpoints REST (`/api/asteroids`, `/api/mining`, `/api/chat`, etc.) et gère les connexions au driver Neo4j. Les requêtes utilisent des fonctions comme `COALESCE` pour assurer la robustesse des données incomplètes.
+- **Frontend (Next.js 16 + React + TailwindCSS)** : Une interface immersive "Cockpit de Vaisseau Spatial" (Dark Mode, Cyan Neon) entièrement réactive.
+- **Simulations Graphiques** :
+  - **Graph spatial (Neo4j)** : Visualisation du réseau via `react-force-graph-2d`.
+  - **Modélisation 3D (Shap-E)** : Génération par IA de modèles 3D d'astéroïdes en fonction de la prédiction des matériaux.
+  - **Simulation de Vitesse (Matplotlib)** : Moteur 2D rapide pour simuler visuellement la vitesse d'interception et d'impact des objets spatiaux de manière proportionnelle.
 
-4. **Alertes JPL Sentry (Impacts Terrestres)** :
-   Un module dédié répertorie et classe dynamiquement les objets ayant une probabilité de percuter la Terre, basé sur les calculs de haute précision du Jet Propulsion Laboratory.
+## Guide de Démarrage
 
-## Guide d'Installation et d'Exécution
+1. **Base de Données (Neo4j)**
+   - Démarrez votre instance locale Neo4j Desktop (port 7687, user: `neo4j`, pass: `exowatch2024`).
 
-1. **Prérequis système**
-   - Python 3.11 ou supérieur
-   - Connexion internet (pour les requêtes API et le chargement dynamique des librairies 3D)
-
-2. **Configuration de l'environnement (.env)**
-   Créez un fichier `.env` à la racine du projet :
-   ```env
-   GEMINI_API_KEY=votre_cle_gemini
-   NASA_API_KEY=votre_cle_nasa
-   ```
-
-3. **Environnement virtuel (recommandé)**
+2. **Lancement du Backend (FastAPI)**
    ```powershell
-   python -m venv .venv
-   .venv\Scripts\Activate.ps1
+   python -m venv .venv312
+   .\.venv312\Scripts\Activate.ps1
    pip install -r requirements.txt
+   python -m uvicorn api:app --port 8000
+   ```
+   *(Note : Pour Windows/CUDA, ne pas utiliser `--reload` avec Shap-E).*
+
+3. **Lancement du Frontend (Next.js)**
+   ```powershell
+   cd frontend
+   npm install
+   npm run dev -- -p 3000
    ```
 
-4. **Lancement du Pipeline ETL (Ordre strict)**
-   ```powershell
-   python src\collect.py
-   python src\collect_neo.py
-   python src\collect_sentry.py
-   python src\transform.py
-   ```
-
-5. **Démarrage de l'Application Streamlit**
-   ```powershell
-   streamlit run app.py
-   ```
+4. **Accès**
+   Ouvrez votre navigateur sur `http://localhost:3000`. L'interface de commande ExoWatch est en ligne.

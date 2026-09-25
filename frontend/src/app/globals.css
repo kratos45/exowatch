@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-cyan: #0ff;
+  --color-neon-red: #ff3333;
+  --color-neon-orange: #ff9900;
+  --color-neon-green: #33ff33;
+  --color-cockpit-bg: #050505;
+  --color-cockpit-panel: #111111;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+body {
+  background-color: #ffffff;
+  color: #111827;
+  font-family: var(--font-mono);
+  background-image: 
+    linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+  background-attachment: fixed;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neon-cyan);
+}
+
+.panel-border {
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.15), inset 0 0 10px rgba(0, 255, 255, 0.1);
+  background-color: #ffffff;
+}
+
+.glow-cyan {
+  text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+}
+.glow-red {
+  text-shadow: 0 0 5px rgba(255, 51, 51, 0.8);
+}
