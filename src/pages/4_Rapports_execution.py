@@ -56,7 +56,7 @@ if run_history:
     )
     apply_plotly_theme(fig_bar)
     fig_bar.update_layout(barmode="stack")
-    st.plotly_chart(fig_bar, use_container_width=True)
+    st.plotly_chart(fig_bar, use_container_width=True, key="run_duration_bar")
 else:
     st.info("Aucune donnée d'exécution disponible pour tracer l'historique.")
 

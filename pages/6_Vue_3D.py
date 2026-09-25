@@ -210,7 +210,7 @@ fig.update_layout(
     margin=dict(l=0, r=0, t=10, b=10)
 )
 
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, use_container_width=True, key="orbit_3d_scatter")
 
 # Information strip below 3D canvas
 c1, c2, c3 = st.columns(3)

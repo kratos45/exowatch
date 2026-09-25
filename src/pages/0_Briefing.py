@@ -183,7 +183,7 @@ else:
                     color="#ff4757" if score >= 70 else "#00D9FF",
                     projected_value=trend_data["projected"]
                 )
-                st.plotly_chart(spark_fig, use_container_width=True)
+                st.plotly_chart(spark_fig, use_container_width=True, key=f"spark_{entity_id}")
                 st.caption(f"Est. Prochain Run : **{trend_data['next_value_estimate']:.1f}** pts (Pente : {trend_data['slope']:+.1f})")
 
 st.markdown("---")
@@ -232,7 +232,7 @@ with col_mining:
         """, unsafe_allow_html=True)
 
         fig_gauge = render_confidence_gauge(top_mining.get("confidence", 0.8), title="Confiance Minière")
-        st.plotly_chart(fig_gauge, use_container_width=True)
+        st.plotly_chart(fig_gauge, use_container_width=True, key="top_mining_confidence_gauge")
     else:
         st.info("Aucune opportunité minière qualifiée pour le moment.")
 

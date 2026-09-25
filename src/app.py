@@ -146,7 +146,7 @@ with tab_viz:
                 color_discrete_sequence=["#00D9FF"]
             )
             apply_plotly_theme(fig_hist)
-            st.plotly_chart(fig_hist, use_container_width=True)
+            st.plotly_chart(fig_hist, use_container_width=True, key="app_diameter_hist")
 
         with c_chart2:
             st.subheader("Vitesse relative vs Distance de croisement")
@@ -169,7 +169,7 @@ with tab_viz:
                 title="Corrélation Vélocité / Proximité"
             )
             apply_plotly_theme(fig_scatter)
-            st.plotly_chart(fig_scatter, use_container_width=True)
+            st.plotly_chart(fig_scatter, use_container_width=True, key="app_hazard_scatter")
     else:
         st.info("Aucune donnée disponible. Cliquez sur 'Lancer une exécution batch' dans le menu latéral pour alimenter la base.")
 
