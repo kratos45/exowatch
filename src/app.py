@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-# Add project root directory to sys.path so 'src.*' imports work regardless of execution location
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
@@ -11,6 +10,8 @@ import pandas as pd
 import plotly.express as px
 from dotenv import load_dotenv
 
+from src.ui.theme import inject_theme
+from src.ui.components import render_kpi_card, apply_plotly_theme
 from src.db import init_db, get_connection
 from src.pipeline import run_pipeline
 
@@ -23,6 +24,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Apply Mission Control Theme
+inject_theme()
 
 # Ensure database is initialized
 init_db()
@@ -59,58 +63,66 @@ def load_kpi_data():
 
 # Header
 st.title("🌌 ExoWatch — NEO Intelligence Platform")
-st.caption("Plateforme d'ingestion robuste, validation sous contrat de données et valorisation scientifique d'astéroïdes proches de la Terre.")
+st.caption("Salle de Contrôle Opérationnelle : Ingestion sous contrat de données, modélisation physique et intelligence décisionnelle.")
 
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Contrôle Pipeline")
-    st.info("Architecture conforme TP ESEO : SQLite Local + Contrat YAML + Traçabilité Totale")
+    st.info("Architecture conforme TP ESEO : SQLite Curated Store + Contrat YAML + Traçabilité Totale")
 
     if st.button("🚀 Lancer une exécution batch", type="primary", use_container_width=True):
-        with st.spinner("Exécution du pipeline (collecte -> validation -> curation -> enrichissement)..."):
+        with st.spinner("Exécution du pipeline (collecte -> validation -> curation -> enrichissement -> scores)..."):
             report = run_pipeline()
             st.success(f"Pipeline complété avec succès ! Statut: {report['quality_status']}")
             st.rerun()
 
     st.markdown("---")
-    st.markdown("**Navigation rapide** : Utilisez le menu ci-dessus pour naviguer entre les pages thématiques.")
+    st.markdown("**Navigation rapide** : Utilisez le menu ci-dessus pour naviguer entre le Briefing du Jour et les vues analytiques.")
 
 # Fetch data
 total_obs, hazardous_obs, enriched_count, last_run, audit_history, obs_df = load_kpi_data()
 
-# KPI Metrics row
+# KPI Metrics row using Mission Control HUD Cards
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric(
+    render_kpi_card(
         label="Observations Curated",
         value=f"{total_obs:,}",
-        help="Nombre total d'enregistrements validés dans neo_observations"
+        delta="Stockage SQLite Immuable",
+        status="normal",
+        delta_type="neutral"
     )
 
 with col2:
     pct_haz = (hazardous_obs / total_obs * 100) if total_obs > 0 else 0
-    st.metric(
+    status_haz = "critical" if hazardous_obs > 0 else "normal"
+    render_kpi_card(
         label="Astéroïdes Dangereux",
         value=f"{hazardous_obs} ({pct_haz:.1f}%)",
         delta="Menace potentielle" if hazardous_obs > 0 else "Aucune menace",
-        delta_color="inverse"
+        status=status_haz,
+        delta_type="negative" if hazardous_obs > 0 else "positive"
     )
 
 with col3:
-    st.metric(
+    render_kpi_card(
         label="Objets Enrichis IA",
         value=f"{enriched_count}",
-        help="Astéroïdes avec analyse minière et ISU enregistrée dans ai_enrichments"
+        delta="ISRU & Valorisation",
+        status="normal",
+        delta_type="positive"
     )
 
 with col4:
     status_label = last_run["quality_status"] if last_run else "AUCUN RUN"
-    status_icon = "🟢" if status_label == "PASSED" else ("🟡" if status_label == "PASSED_WITH_WARNINGS" else "🔴")
-    st.metric(
-        label="Dernier Statut Qualité",
-        value=f"{status_icon} {status_label}",
-        help=f"Exécuté le {last_run['executed_at'] if last_run else 'N/A'}"
+    status_kpi = "normal" if status_label == "PASSED" else ("warning" if status_label == "PASSED_WITH_WARNINGS" else "critical")
+    render_kpi_card(
+        label="Statut Qualité Dernier Run",
+        value=status_label,
+        delta=f"Exécuté le {last_run['executed_at'][:19] if last_run else 'N/A'}",
+        status=status_kpi,
+        delta_type="positive" if status_label == "PASSED" else "negative"
     )
 
 st.markdown("---")
@@ -131,13 +143,9 @@ with tab_viz:
                 log_y=True,
                 labels={"diameter_km_max": "Diamètre max estimé (km)"},
                 title="Échelle logarithmique du diamètre",
-                color_discrete_sequence=["#00D4FF"]
+                color_discrete_sequence=["#00D9FF"]
             )
-            fig_hist.update_layout(
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font_color="#E6EDF3"
-            )
+            apply_plotly_theme(fig_hist)
             st.plotly_chart(fig_hist, use_container_width=True)
 
         with c_chart2:
@@ -152,7 +160,7 @@ with tab_viz:
                 color="hazardous_label",
                 size="size_plot",
                 hover_data=["name", "observed_at", "diameter_km_max"],
-                color_discrete_map={"Dangereux": "#FF4D4D", "Non dangereux": "#00D4FF"},
+                color_discrete_map={"Dangereux": "#FF4757", "Non dangereux": "#00D9FF"},
                 labels={
                     "miss_distance_km": "Distance de croisement (km)",
                     "velocity_kmh": "Vitesse relative (km/h)",
@@ -160,11 +168,7 @@ with tab_viz:
                 },
                 title="Corrélation Vélocité / Proximité"
             )
-            fig_scatter.update_layout(
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
-                font_color="#E6EDF3"
-            )
+            apply_plotly_theme(fig_scatter)
             st.plotly_chart(fig_scatter, use_container_width=True)
     else:
         st.info("Aucune donnée disponible. Cliquez sur 'Lancer une exécution batch' dans le menu latéral pour alimenter la base.")

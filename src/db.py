@@ -114,11 +114,24 @@ def init_db():
             );
         """)
 
+        # 6. priority_scores (Decision Layer)
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS priority_scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entity_id TEXT NOT NULL,
+                score REAL NOT NULL,
+                computed_at TEXT NOT NULL DEFAULT (datetime('now')),
+                run_id TEXT NOT NULL
+            );
+        """)
+
         # Indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_neo_entity_id ON neo_observations(entity_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_ai_entity_id ON ai_enrichments(entity_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_sentry_entity_id ON sentry_scores(entity_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_pipeline_run_id ON pipeline_runs(run_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_priority_entity_id ON priority_scores(entity_id);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_priority_run_id ON priority_scores(run_id);")
 
         # Views
         cursor.execute("DROP VIEW IF EXISTS view_hazardous;")

@@ -178,7 +178,13 @@ def run_pipeline(raw_file: Path = None, sentry_file: Path = None, enable_enrich:
     sentry_records = transform_sentry_records(sentry_file)
     load_curated_sentry_scores(sentry_records)
 
-    # Step 6: AI Enrichment
+    # Step 6: Decision Layer & Priority Scoring
+    from src.decision import calculate_and_store_priority_scores
+    scored_items = calculate_and_store_priority_scores(run_id)
+    logger.info(f"Step 6: Computed priority scores for {len(scored_items)} asteroids.")
+
+    # Step 7: AI Enrichment & Daily Briefing
+    from src.enrich import generate_daily_brief
     enrichment_count = 0
     if enable_enrich and not transformed_df.empty:
         # Enrich up to 5 highest-priority NEOs per run to balance latency and cost
@@ -193,9 +199,13 @@ def run_pipeline(raw_file: Path = None, sentry_file: Path = None, enable_enrich:
 
         store_enrichments(all_enrichments)
         enrichment_count = len(all_enrichments)
-        logger.info(f"Step 6: Created {enrichment_count} AI enrichment entries.")
+        logger.info(f"Step 7a: Created {enrichment_count} AI enrichment entries.")
 
-    # Step 7: Assess Quality Status
+        # Generate daily briefing executive summary
+        brief_result = generate_daily_brief(run_id)
+        logger.info(f"Step 7b: Daily briefing generated with model {brief_result.get('model_used')}.")
+
+    # Step 8: Assess Quality Status
     if rejected_rows_count == 0 and duplicates_removed == 0:
         quality_status = "PASSED"
     elif accepted_rows_count > 0:

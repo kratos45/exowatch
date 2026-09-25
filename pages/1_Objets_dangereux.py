@@ -8,12 +8,18 @@ if str(ROOT_DIR) not in sys.path:
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+
+from src.ui.theme import inject_theme
+from src.ui.components import render_kpi_card, render_threat_badge, apply_plotly_theme
 from src.db import get_connection
 
 st.set_page_config(page_title="Objets Dangereux - ExoWatch", page_icon="🚨", layout="wide")
 
-st.title("🚨 Surveillance des Objets Potentiellement Dangereux")
-st.caption("Données issues de la vue SQL `view_hazardous` (croisement NASA NeoWS + NASA Sentry)")
+# Apply Mission Control Theme
+inject_theme()
+
+st.title("🚨 SURVEILLANCE DES OBJETS POTENTIELLEMENT DANGEREUX")
+st.caption("TELEMETRIE CROISÉE NASA NEOWS & SENTRY RISK DATABASE (VUE SQL `view_hazardous`)")
 
 # Load data from view_hazardous
 with get_connection() as conn:
@@ -53,13 +59,16 @@ else:
         (df_hazardous["diameter_km_max"] >= min_diameter_filter)
     ].copy()
 
-    # KPI Summary Cards
+    # KPI Summary Cards using HUD Design System
     col1, col2, col3 = st.columns(3)
-    col1.metric("Objets Dangereux Filtrés", len(filtered_df), f"sur {len(df_hazardous)} total")
-    closest_dist = filtered_df["miss_distance_km"].min() if not filtered_df.empty else 0
-    col2.metric("Plus proche croisement", f"{closest_dist:,.0f} km")
-    max_diam = filtered_df["diameter_km_max"].max() if not filtered_df.empty else 0
-    col3.metric("Plus grand diamètre", f"{max_diam:.3f} km")
+    with col1:
+        render_kpi_card("Objets Dangereux Filtrés", f"{len(filtered_df)}", f"sur {len(df_hazardous)} total", status="critical", delta_type="negative")
+    with col2:
+        closest_dist = filtered_df["miss_distance_km"].min() if not filtered_df.empty else 0
+        render_kpi_card("Périgée le Plus Proche", f"{closest_dist:,.0f} km", f"{closest_dist/384400:.1f} LD (Dist. Lune)", status="warning", delta_type="neutral")
+    with col3:
+        max_diam = filtered_df["diameter_km_max"].max() if not filtered_df.empty else 0
+        render_kpi_card("Diamètre Maximal Estimé", f"{max_diam:.3f} km", "Seuil d'extinction régionale", status="critical", delta_type="negative")
 
     st.markdown("---")
 

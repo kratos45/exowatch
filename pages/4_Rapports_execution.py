@@ -9,12 +9,18 @@ import streamlit as st
 import pandas as pd
 import json
 import plotly.express as px
+
+from src.ui.theme import inject_theme
+from src.ui.components import render_kpi_card, apply_plotly_theme
 from src.db import get_connection
 
 st.set_page_config(page_title="Rapports d'Exécution - ExoWatch", page_icon="📜", layout="wide")
 
-st.title("📜 Rapports d'Exécution & Métriques de Qualité")
-st.caption("Audit rétrospectif des batchs d'ingestion et contrôle de conformité contractuelle.")
+# Apply Mission Control theme
+inject_theme()
+
+st.title("📜 RAPPORTS D'EXÉCUTION & AUDIT QUALITÉ")
+st.caption("JOURNAL DES BATCHS D'INGESTION, SUIVI DES REJETS ET CONTRÔLE CONTRACTUEL")
 
 REPORTS_DIR = Path("reports")
 report_files = sorted(REPORTS_DIR.glob("run_report_*.json"), reverse=True)
@@ -48,12 +54,8 @@ if run_history:
             "duplicates_removed": "#F59E0B"
         }
     )
-    fig_bar.update_layout(
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        font_color="#E6EDF3",
-        barmode="stack"
-    )
+    apply_plotly_theme(fig_bar)
+    fig_bar.update_layout(barmode="stack")
     st.plotly_chart(fig_bar, use_container_width=True)
 else:
     st.info("Aucune donnée d'exécution disponible pour tracer l'historique.")
@@ -76,12 +78,18 @@ else:
         with open(selected_file, "r", encoding="utf-8") as f:
             report_data = json.load(f)
 
-        # Overview cards
+        # Overview cards using HUD Components
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Run ID", report_data.get("run_id", "N/A")[:8])
-        c2.metric("Statut Qualité", report_data.get("quality_status", "N/A"))
-        c3.metric("Lignes Entrantes", report_data.get("input_rows", 0))
-        c4.metric("Durée du Run", f"{report_data.get('duration_seconds', 0):.2f}s")
+        with c1:
+            render_kpi_card("Run ID", report_data.get("run_id", "N/A")[:8], "Identifiant Unique UUID", status="normal", delta_type="neutral")
+        with c2:
+            q_stat = report_data.get("quality_status", "N/A")
+            q_color = "normal" if q_stat == "PASSED" else ("warning" if "WARN" in q_stat else "critical")
+            render_kpi_card("Statut Qualité", q_stat, "Audit de conformité", status=q_color, delta_type="positive" if q_stat == "PASSED" else "negative")
+        with c3:
+            render_kpi_card("Lignes Ingestées", f"{report_data.get('input_rows', 0)}", f"{report_data.get('accepted_rows', 0)} acceptées", status="normal", delta_type="neutral")
+        with c4:
+            render_kpi_card("Durée Batch", f"{report_data.get('duration_seconds', 0):.2f}s", "Temps d'exécution", status="normal", delta_type="neutral")
 
         tab_rules, tab_rejections, tab_raw_json = st.tabs([
             "📋 Bilan des Règles Qualité",

@@ -8,12 +8,17 @@ if str(ROOT_DIR) not in sys.path:
 import streamlit as st
 import pandas as pd
 import json
+
+from src.ui.theme import inject_theme
 from src.db import get_connection
 
 st.set_page_config(page_title="Traçabilité - ExoWatch", page_icon="🔍", layout="wide")
 
-st.title("🔍 Traçabilité & Lignage de Bout en Bout")
-st.caption("Suivi granulaire des données : du fichier brut JSON aux enrichissements d'IA générative.")
+# Apply Mission Control theme
+inject_theme()
+
+st.title("🔍 TRAÇABILITÉ & LIGNAGE DE BOUT EN BOUT")
+st.caption("AUDITABILITÉ INTÉGRALE : EXTRACTION VERBATIM -> VALIDATION -> REJETS -> INFÉRENCE IA")
 
 # Visual lineage flow using Mermaid diagram
 st.subheader("🌐 Diagramme du Flux de Traçabilité")

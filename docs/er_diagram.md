@@ -10,8 +10,10 @@ Ce document présente l'architecture de la base de données relationnelle locale
 erDiagram
     neo_observations ||--o{ sentry_scores : "a pour scores d'impact"
     neo_observations ||--o{ ai_enrichments : "fait l'objet d'évaluations IA"
+    neo_observations ||--o{ priority_scores : "a pour score de décision"
     pipeline_runs ||--o{ rejected_rows : "génère des rejets"
     pipeline_runs ||--o{ ai_enrichments : "trace le run d'inférence"
+    pipeline_runs ||--o{ priority_scores : "enregistre les scores calculés"
 
     neo_observations {
         INTEGER observation_id PK "Auto-incrémenté"
@@ -42,13 +44,21 @@ erDiagram
     ai_enrichments {
         INTEGER enrichment_id PK "Auto-incrémenté"
         TEXT entity_id "Identifiant astéroïde lié"
-        TEXT field_enriched "Attribut qualifié (ex: mining_potential)"
+        TEXT field_enriched "Attribut qualifié (ex: mining_potential, daily_brief_summary)"
         TEXT value "Valeur générée par le modèle"
         REAL confidence "Score de confiance normalisé [0.0 - 1.0]"
         TEXT model_used "Identifiant du modèle (ex: gemini-2.0-flash)"
-        TEXT prompt_version "Version du prompt (ex: v1.2)"
+        TEXT prompt_version "Version du prompt (ex: v1.3-briefing)"
         TEXT enriched_at "Horodatage d'inférence UTC"
         TEXT pipeline_run_id "Clé étrangère vers pipeline_runs"
+    }
+
+    priority_scores {
+        INTEGER id PK "Auto-incrémenté"
+        TEXT entity_id "Identifiant astéroïde lié"
+        REAL score "Score composite de priorité d'action [0-100]"
+        TEXT computed_at "Horodatage de calcul UTC"
+        TEXT run_id "Clé étrangère vers pipeline_runs"
     }
 
     pipeline_runs {
@@ -88,8 +98,13 @@ erDiagram
 - **Liaison** : Rattaché logiquement par `entity_id`.
 
 ### `ai_enrichments`
-- **Rôle** : Historisation immuable des estimations de potentiel d'exploitation minière et d'in-situ resource utilization (ISRU) dérivées par LLM.
+- **Rôle** : Historisation immuable des estimations de potentiel d'exploitation minière et d'in-situ resource utilization (ISRU) dérivées par LLM, ainsi que des synthèses directives opérationnelles (`daily_brief_summary`).
 - **Traçabilité** : Chaque enregistrement conserve la version exacte du prompt (`prompt_version`), le modèle d'inférence (`model_used`) et le run d'exécution (`pipeline_run_id`).
+
+### `priority_scores`
+- **Rôle** : Couche décisionnelle (Decision Layer). Enregistre les scores composites d'action (0-100) calculés de manière reproductible à chaque run batch, basés sur la formule :
+  $$\text{Score} = (\text{Proximité} \times 0.40 + \text{Danger} \times 0.35 + \text{Tendance} \times 0.25) \times 100$$
+- **Indexation** : Indexé sur `entity_id` et `run_id` pour la génération des sparklines temporelles et des alertes de variation de menace.
 
 ### `pipeline_runs`
 - **Rôle** : Journal d'audit chronologique de tous les batchs d'ingestion.

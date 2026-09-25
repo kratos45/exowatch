@@ -1,0 +1,57 @@
+{
+  "run_id": "627d2a69-e866-42ec-a534-12ef6fd9e6a9",
+  "executed_at": "2026-09-25T09:54:44.909681+00:00",
+  "source_file": "raw_sample.json",
+  "input_rows": 2,
+  "accepted_rows": 2,
+  "rejected_rows": 0,
+  "duplicates_removed": 0,
+  "quality_status": "PASSED",
+  "duration_seconds": 0.04,
+  "enrichments_created": 0,
+  "audit_metrics": [
+    {
+      "rule_id": "R1",
+      "name": "entity_id_not_null",
+      "passed": 2,
+      "failed": 0,
+      "action": "reject"
+    },
+    {
+      "rule_id": "R2",
+      "name": "observed_at_valid_date",
+      "passed": 2,
+      "failed": 0,
+      "action": "reject"
+    },
+    {
+      "rule_id": "R3",
+      "name": "diameter_positive",
+      "passed": 2,
+      "failed": 0,
+      "action": "reject"
+    },
+    {
+      "rule_id": "R4",
+      "name": "velocity_plausible_range",
+      "passed": 2,
+      "failed": 0,
+      "action": "flag"
+    },
+    {
+      "rule_id": "R6",
+      "name": "miss_distance_positive",
+      "passed": 2,
+      "failed": 0,
+      "action": "reject"
+    },
+    {
+      "rule_id": "R5",
+      "name": "unique_business_key",
+      "passed": 2,
+      "failed": 0,
+      "action": "deduplicate"
+    }
+  ],
+  "sample_rejections": []
+}

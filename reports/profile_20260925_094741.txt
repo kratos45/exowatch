@@ -1,0 +1,65 @@
+============================================================
+EXOWATCH DATA PROFILING REPORT
+Date: 2026-09-25T09:47:41.352453+00:00
+Source file: data\raw\neows_raw_20260925_094723.json
+============================================================
+
+1. GENERAL METRICS
+   Total extracted observations: 39
+   Columns: ['entity_id', 'name', 'observed_at', 'diameter_km_min', 'diameter_km_max', 'velocity_kmh', 'miss_distance_km', 'is_hazardous', 'absolute_magnitude', 'orbiting_body']
+
+2. BUSINESS KEY & UNIQUENESS
+   Business key: (entity_id, observed_at)
+   Duplicate rows count: 0 (0.00%)
+
+3. MISSING VALUES ANALYSIS
+   - entity_id             : 0 missing (0.0%)
+   - name                  : 0 missing (0.0%)
+   - observed_at           : 0 missing (0.0%)
+   - diameter_km_min       : 0 missing (0.0%)
+   - diameter_km_max       : 0 missing (0.0%)
+   - velocity_kmh          : 0 missing (0.0%)
+   - miss_distance_km      : 0 missing (0.0%)
+   - is_hazardous          : 0 missing (0.0%)
+   - absolute_magnitude    : 0 missing (0.0%)
+   - orbiting_body         : 0 missing (0.0%)
+
+4. NUMERICAL DISTRIBUTIONS
+   * diameter_km_min:
+       min:    0.0038
+       max:    0.8965
+       median: 0.0359
+       mean:   0.0965
+       std:    0.1700
+   * diameter_km_max:
+       min:    0.0086
+       max:    2.0047
+       median: 0.0802
+       mean:   0.2158
+       std:    0.3802
+   * velocity_kmh:
+       min:    22855.2383
+       max:    133395.6652
+       median: 46824.8677
+       mean:   52120.5437
+       std:    25167.7056
+   * miss_distance_km:
+       min:    10081613.1725
+       max:    73848076.9359
+       median: 44130095.3408
+       mean:   42396526.7191
+       std:    18256894.0467
+   * absolute_magnitude:
+       min:    17.3600
+       max:    29.2000
+       median: 24.3500
+       mean:   23.9985
+       std:    2.6753
+
+5. HAZARDOUS CLASS BALANCE
+   - is_hazardous = False: 36 (92.3%)
+   - is_hazardous = True: 3 (7.7%)
+
+============================================================
+END OF PROFILE REPORT
+============================================================

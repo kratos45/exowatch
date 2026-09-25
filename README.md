@@ -120,12 +120,36 @@ L'application est immédiatement accessible dans votre navigateur à l'adresse :
 
 ---
 
+## 🛡️ 4. Couche de Décision & Design System "Mission Control"
+
+### Score Composite de Priorité d'Action (`src/decision.py`)
+Au-delà de la simple visualisation, ExoWatch intègre une **couche décisionnelle opérationnelle** qui calcule à chaque run un score unique ($0 - 100$) pour orienter les analystes :
+$$\text{Score} = (\text{Proximité} \times 0.40 + \text{Dangerosité} \times 0.35 + \text{Tendance} \times 0.25) \times 100$$
+- **Proximité** : fonction inverse de la distance de croisement (périgée).
+- **Dangerosité** : coefficient selon la classification binaire NASA PDCO.
+- **Tendance Temporelle** : comparaison des 2 dernières observations documentées pour détecter les rapprochements accélérés.
+- **Stockage Batch** : persisté dans la table `priority_scores` avec traçabilité par `run_id`.
+
+### Design System HUD "Mission Control" (`src/ui/`)
+- **Palette Spatiale Sombre** : Fond `#0A0E14` avec motif radar subtil (`radial-gradient`), accents Cyan `#00D9FF`, Ambre `#F59E0B` et Rouge Alerte `#FF4757`.
+- **Cartes Instrument de Bord** (`render_kpi_card`) : Glow réactif au survol, typographie monospace technique **JetBrains Mono**.
+- **Badges Pulsants** (`render_threat_badge`) : Pulsation CSS dynamique sur les menaces critiques.
+- **Sparklines Intégrées** (`render_sparkline`) : Mini-graphiques de tendance temporelle sans axes parasites.
+
+---
+
 ## 🖥️ 5. Pages de l'Application Streamlit
 
-1. **Dashboard Principal (`src/app.py`)** :
-   - KPIs globaux (Total observations, % astéroïdes dangereux, statut qualité du dernier run, total enrichis IA).
+0. **Briefing Opérationnel du Jour (`pages/0_Briefing.py`) — *Page d'Accueil Décisionnelle*** :
+   - Répond immédiatement à : *"Sur quoi l'équipe doit-elle agir aujourd'hui ?"*
+   - **Top 3 Objets Critiques** : Cartes grand format avec badge de menace, sparkline temporelle, et **synthèse directive générée par LLM** (stockée sous `daily_brief_summary` pour une traçabilité totale).
+   - **Alertes de Changement Récentes** : Détection des variations significatives de score de menace entre les deux derniers batchs.
+   - **Opportunité Minière du Jour** : Meilleure cible d'exploitation in-situ (ISRU) avec jauge de confiance Plotly Dark.
+
+1. **Dashboard de Synthèse (`src/app.py`)** :
+   - KPIs d'instrumentation (Total observations, % astéroïdes dangereux, statut qualité du dernier run, total enrichis IA).
    - Graphiques interactifs Plotly : histogramme logarithmique des diamètres et corrélation Vélocité / Proximité.
-   - Bouton d'exécution batch direct avec retour visuel.
+   - Bouton de déclenchement batch direct.
    - Tableau de bord des 5 derniers runs (vue `view_data_quality_audit`).
 
 2. **Objets Dangereux (`pages/1_Objets_dangereux.py`)** :
